@@ -1,0 +1,29 @@
+[Unit]
+Description=Socrastica Next.js application
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+Type=simple
+User=socrastica
+Group=socrastica
+WorkingDirectory=/opt/socrastica/current
+Environment=NODE_ENV=production
+Environment=NEXT_DIST_DIR=.next-build
+Environment=NEXT_TELEMETRY_DISABLED=1
+Environment=NODE_OPTIONS=--max-old-space-size=768
+EnvironmentFile=/etc/socrastica/app.env
+ExecStart=/usr/local/bin/node node_modules/next/dist/bin/next start --hostname 127.0.0.1 --port 3000
+Restart=on-failure
+RestartSec=5
+TimeoutStopSec=30
+NoNewPrivileges=true
+PrivateTmp=true
+ProtectSystem=strict
+ProtectHome=true
+ReadWritePaths=/opt/socrastica
+UMask=0027
+MemoryMax=1100M
+
+[Install]
+WantedBy=multi-user.target

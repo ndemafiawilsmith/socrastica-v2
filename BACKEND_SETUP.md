@@ -30,16 +30,24 @@ E2B is replaced by ECS Fargate in account `954633149655`, region `us-east-1`. `s
 
 `POST /api/execute` verifies auth/origin/payload, atomically reserves an execution slot, stores the input privately, and launches one task. `GET /api/execute?id=...` verifies ownership and persists results. The task receives only short-lived signed URLs for its own input and output; it has no task IAM role. Student TypeScript is transpiled and executed inside QuickJS/WebAssembly, with 32 MB VM memory, a 750 ms deadline per case, fresh test contexts, and no host functions or module loader. These exercises support standalone synchronous functions, not arbitrary Node projects. The trusted host validates primitive boolean returns against eight reviewed cases.
 
-The 200-run shared allowance is intentionally conservative. Each user may attempt 20 runs per rolling day; at most four jobs can be active. Failed attempts remain counted. A 45-second runner watchdog and a separate EventBridge/Lambda cleanup job stop overdue tasks even when browsers disconnect. Task startup and AWS control-plane transitions add latency; execution tests alone do not prove flowchart equivalence or complexity. Hosting, production monitoring/alerts, broader challenge coverage, email delivery, and security review remain before a public launch.
+The 200-run shared allowance is intentionally conservative. Each user may attempt 20 runs per rolling day; at most four jobs can be active. Failed attempts remain counted. A 45-second runner watchdog and a separate EventBridge/Lambda cleanup job stop overdue tasks even when browsers disconnect. Task startup and AWS control-plane transitions add latency; execution tests alone do not prove flowchart equivalence or complexity. Production monitoring/alerts, broader challenge coverage, inbox delivery checks, and security review remain before a broader public launch.
 
 Verified: runner tests, execution quota guards in rolled-back SQL transactions, real authenticated Fargate execution with all eight cases passing, persisted results, cross-user denial/RLS, normal successful task shutdown, and an independent Lambda cleanup test against an overdue running task. Production build, typecheck, existing auth/progress integration, auth-page/stylesheet checks, and npm audit passed. These tests made no OpenAI calls. Temporary test accounts were removed; execution reservations remain counted.
+
+## Website hosting
+
+The website is deployed on a single Ubuntu EC2 t3.small in the project AWS account, with encrypted 20 GB gp3 storage, Standard CPU credits, and one Elastic IP. Caddy HTTPS is verified at https://socrastica.com; www redirects to the apex. Production Supabase confirmation/recovery callbacks and the site URL are configured. Hosted pages, stylesheets, authentication, persistence, origin guards, and one live budget-approved AI response with automatic map progression passed. Temporary test accounts were removed.
+
+The EC2 application role is created with the runtime boundary and narrow execution policy, but attaching its instance profile is pending the additional SocrasticaEC2Deployment permission. The hosted code runner is unavailable until that permission is attached, the role is associated, and a hosted execution test passes. See `infra/aws/ec2-deployment-iam.json` and `infra/aws/HOSTING.md`. Local runner verification remains valid but does not establish hosted role access.
+
+GitHub main is fetched by a manual deployment helper that builds separate releases, switches the live symlink, restarts the app, checks health, and restores the previous release on a failed startup. No developer AWS credentials or management tokens were copied to the host. Estimated fixed hosting is about $21/month before tax, credits, transfer, and execution usage; other projects and account-wide usage are outside that estimate.
 
 ## Further product work
 
 - Expand the reasoning/graph assessment beyond duplicate detection; current graphs are generated from the student's accepted reasoning.
 - Expand the reviewed challenge library and progress across challenges; the current runner grades duplicate detection only.
 - Add account deletion, data retention, backup/restore procedures, and production monitoring.
-- Deploy hosting on AWS for socrastica.com; configure production environment variables and auth redirects.
+- Complete the EC2 execution role attachment and hosted runner verification; enable Cloudflare proxying with Full (strict) SSL if desired.
 - Configure OAuth or payments only if those features are requested.
 
 ## Secrets

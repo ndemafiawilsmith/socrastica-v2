@@ -38,6 +38,8 @@ supabase/.branches/
 # Generated deployment inventory and packages
 infra/aws/execution-resources.json
 infra/aws/watchdog.zip
+infra/aws/hosting-resources.json
+infra/aws/private/
 *.tfstate
 *.tfstate.*
 .terraform/
