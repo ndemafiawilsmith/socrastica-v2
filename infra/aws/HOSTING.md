@@ -50,6 +50,8 @@ node scripts/deploy-web.cjs --update
 
 Or connect using the ignored private key and run `sudo socrastica-deploy` on the server. The root-owned helper fetches GitHub `main`, creates a separate release, installs the lockfile dependencies, builds, switches the current symlink, restarts the app, and checks `/login`. A failed startup restores the prior release when one exists. Releases are bounded, retaining the newest two and rollback target. Deployments are manual; a GitHub push alone does not publish an update. No GitHub credentials are needed to fetch the public repository.
 
+For a deliberate rollback, `sudo socrastica-deploy FULL_COMMIT_SHA` builds a commit already present in the server repository. The deployment used a Git bundle transferred over SSH for the proxy-auth correction while local GitHub push credentials were unavailable; the corresponding local commits must still be pushed to GitHub. Normal updates continue to fetch the public repository.
+
 `node scripts/deploy-web.cjs` reapplies host service/Caddy configuration and the current local application environment, then deploys GitHub main. Use this full command after changing hosting configuration or secrets. Database migrations are separate; review and run them deliberately before deploying code that requires them.
 
 ## Operations

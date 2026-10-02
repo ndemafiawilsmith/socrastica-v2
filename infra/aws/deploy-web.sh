@@ -9,7 +9,11 @@ if [ ! -d "$repo" ]; then
   runuser -u socrastica -- git clone --bare https://github.com/ndemafiawilsmith/socrastica-v2.git "$repo"
 fi
 runuser -u socrastica -- git --git-dir="$repo" fetch origin refs/heads/main:refs/heads/main
-revision=$(runuser -u socrastica -- git --git-dir="$repo" rev-parse refs/heads/main)
+requested="${1:-refs/heads/main}"
+if [ "$requested" != refs/heads/main ] && ! [[ "$requested" =~ ^[a-f0-9]{40}$ ]]; then
+  echo 'Specify a full commit SHA or omit it to deploy GitHub main'; exit 1
+fi
+revision=$(runuser -u socrastica -- git --git-dir="$repo" rev-parse "$requested^{commit}")
 release="/opt/socrastica/releases/$(date -u +%Y%m%dT%H%M%SZ)-${revision:0:12}"
 install -d -o socrastica -g socrastica "$release"
 runuser -u socrastica -- git --git-dir="$repo" archive "$revision" | tar -x -C "$release"

@@ -31,6 +31,8 @@ async function main(){
  }
  assert.equal((await call('/studio')).status,307);
  assert.equal((await call('/api/progress')).status,401);
+ const callback=await call('/auth/callback?next=https://example.com');
+ assert.equal(callback.status,307);assert.equal(callback.headers.get('location'),origin+'/login?error=confirmation');
  console.log('PASS hosted pages, stylesheets, protected studio, and API authentication');
  const email=`socrastica-hosted-${randomUUID()}@example.com`,password=`${randomUUID()}Aa1!`;
  const created=await admin.auth.admin.createUser({email,password,email_confirm:true});assert.ifError(created.error);userId=created.data.user.id;
