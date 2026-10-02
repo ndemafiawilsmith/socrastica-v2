@@ -1,0 +1,35 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root { color-scheme: dark; }
+body { margin: 0; min-height: 100vh; background: #0b0d18; color: #f0f0fa; font-family: var(--font-geist), sans-serif; }
+body::before { content: ""; position: fixed; inset: -15%; z-index: -1; pointer-events: none; background: radial-gradient(ellipse at 18% 20%, #45327455, transparent 45%), radial-gradient(ellipse at 85% 45%, #183c6845, transparent 48%), radial-gradient(ellipse at 45% 100%, #49316b40, transparent 40%); animation: mesh 24s ease-in-out infinite alternate; }
+::selection { background: #b5a3ff45; }
+* { scrollbar-width: thin; scrollbar-color: #ffffff25 transparent; }
+button, input, textarea { font: inherit; }
+button { touch-action: manipulation; }
+:focus-visible { outline: 2px solid #b5a3ff; outline-offset: 4px; }
+button:disabled { cursor: not-allowed; opacity: .45; }
+@layer components {
+  .glass { @apply border border-white/10 bg-white/[0.035] shadow-glass backdrop-blur-xl; }
+  .panel { @apply glass overflow-hidden rounded-2xl; }
+  .panel-title { @apply flex items-center gap-2.5 border-b border-white/[0.07] px-5 py-4 text-sm font-medium; }
+  .eyebrow { @apply text-[10px] font-semibold uppercase tracking-[.18em] text-mist; }
+  .primary { @apply inline-flex items-center justify-center gap-2 rounded-xl border border-iris/40 bg-iris px-4 py-2.5 text-sm font-semibold text-ink transition hover:bg-[#c7baff] hover:shadow-glow disabled:shadow-none; }
+  .secondary { @apply inline-flex items-center justify-center gap-2 rounded-xl border border-white/10 bg-white/5 px-3 py-2 text-xs text-mist transition hover:bg-white/10 hover:text-white; }
+  .icon-button { @apply grid h-8 w-8 shrink-0 place-items-center rounded-lg text-mist transition hover:bg-white/10 hover:text-white; }
+}
+.diagram svg { display: block; width: 100%; height: auto; max-width: 100% !important; }
+.diagram .node rect, .diagram .node polygon, .diagram .node path { filter: drop-shadow(0 0 6px #a28aff20); }
+@media (prefers-reduced-motion: reduce) { *, *::before, *::after { animation: none !important; transition: none !important; scroll-behavior: auto !important; } }
+html { scroll-behavior: smooth; }
+.hero-gradient { background: linear-gradient(110deg, #e9e2ff 8%, #bba4f7 45%, #8d9ee9 95%); background-clip: text; -webkit-text-fill-color: transparent; }
+.hero-orbit { position: absolute; width: 105%; height: 570px; left: -2.5%; top: 0; pointer-events: none; border: 1px solid #b5a3ff0c; border-radius: 50%; transform: rotate(-12deg); box-shadow: 0 0 100px #9b7dea0b, inset 0 0 100px #9b7dea05; }
+.hero-orbit::after { content: ""; position: absolute; inset: 35px -50px; border: 1px solid #b5a3ff08; border-radius: 50%; }
+.product-preview { background: linear-gradient(135deg, #222139b3, #141a2dcc); box-shadow: 0 40px 100px #00000050, 0 0 0 6px #ffffff02, inset 0 1px 0 #ffffff0d; }
+.preview-map { background-image: radial-gradient(#c2b3ee15 1px, transparent 1px); background-size: 18px 18px; }
+.flow-node { border: 1px solid #ffffff20; border-radius: 9px; padding: 12px 16px; background-color: #ffffff04; font-size: 11px; text-align: center; }
+.flow-line { height: 30px; width: 1px; background: linear-gradient(#b5a3ff60, #b5a3ff30); }
+.section-heading { font-size: clamp(1.9rem, 3.5vw, 2.8rem); line-height: 1.15; font-weight: 500; letter-spacing: -.045em; }
+@media (prefers-reduced-motion: reduce) { html { scroll-behavior: auto; } }

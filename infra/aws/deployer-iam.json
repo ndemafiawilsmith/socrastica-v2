@@ -1,0 +1,38 @@
+{
+  "Version": "2012-10-17",
+  "Statement": [
+    {
+      "Sid": "CreateProjectRolesWithBoundary",
+      "Effect": "Allow",
+      "Action": "iam:CreateRole",
+      "Resource": "arn:aws:iam::954633149655:role/socrastica-*",
+      "Condition": {"ArnEquals": {"iam:PermissionsBoundary": "arn:aws:iam::954633149655:policy/SocrasticaRuntimeBoundary"}}
+    },
+    {
+      "Sid": "MaintainBoundedProjectRoles",
+      "Effect": "Allow",
+      "Action": ["iam:GetRole", "iam:UpdateAssumeRolePolicy", "iam:TagRole", "iam:UntagRole", "iam:DeleteRole", "iam:PutRolePolicy", "iam:GetRolePolicy", "iam:DeleteRolePolicy", "iam:ListRolePolicies", "iam:ListAttachedRolePolicies", "iam:AttachRolePolicy", "iam:DetachRolePolicy"],
+      "Resource": "arn:aws:iam::954633149655:role/socrastica-*"
+    },
+    {
+      "Sid": "PassProjectRolesToWorkloads",
+      "Effect": "Allow",
+      "Action": "iam:PassRole",
+      "Resource": "arn:aws:iam::954633149655:role/socrastica-*",
+      "Condition": {"StringEquals": {"iam:PassedToService": ["ecs-tasks.amazonaws.com", "lambda.amazonaws.com"]}}
+    },
+    {
+      "Sid": "InspectRuntimeBoundary",
+      "Effect": "Allow",
+      "Action": ["iam:GetPolicy", "iam:GetPolicyVersion"],
+      "Resource": "arn:aws:iam::954633149655:policy/SocrasticaRuntimeBoundary"
+    },
+    {
+      "Sid": "CreateRequiredServiceLinkedRoles",
+      "Effect": "Allow",
+      "Action": "iam:CreateServiceLinkedRole",
+      "Resource": "arn:aws:iam::954633149655:role/aws-service-role/*",
+      "Condition": {"StringEquals": {"iam:AWSServiceName": ["ecs.amazonaws.com", "elasticloadbalancing.amazonaws.com", "ecs.application-autoscaling.amazonaws.com"]}}
+    }
+  ]
+}

@@ -1,0 +1,49 @@
+# Dependencies
+node_modules/
+.pnp.*
+
+# Next.js and generated build output
+.next/
+.next-build/
+out/
+build/
+dist/
+coverage/
+*.tsbuildinfo
+next-env.d.ts
+.vercel/
+
+# Local credentials; keep the blank setup template versioned
+.env
+.env.*
+!.env.example
+.aws/
+*.pem
+*.key
+*.p12
+*.pfx
+
+# Local tooling, logs, and operating-system files
+*.log
+.DS_Store
+Thumbs.db
+Desktop.ini
+.idea/
+.vscode/
+
+# Local Supabase state
+supabase/.temp/
+supabase/.branches/
+
+# Generated deployment inventory and packages
+infra/aws/execution-resources.json
+infra/aws/watchdog.zip
+*.tfstate
+*.tfstate.*
+.terraform/
+
+# Generated source exports and visual verification artifacts
+/SOURCE.md
+/landing-preview.jpg
+/emails/auth/*-preview.png
+/emails/preview/
