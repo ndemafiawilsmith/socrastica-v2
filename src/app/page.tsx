@@ -14,7 +14,7 @@ const steps = [
 ];
 const questions = [
   ['Do I need to know how to code?', 'No. Start with an idea in your own words. Blocks and examples help you understand the logic before you meet the code.'],
-  ['What can I learn right now?', 'Choose from 21 activities with money, numbers, lists, and text. Try a naira-to-dollar converter, find an average, reverse a word, or spot a repeated number.'],
+  ['What can I learn right now?', 'Choose from 25 activities with money, numbers, lists, and text. Try a naira-to-dollar converter, find an average, reverse a word, or spot a repeated number. You can start without an account.'],
   ['Can I learn with my class?', 'Yes. Join with your instructor’s class code to share your work and get feedback. Your earlier private journal stays private. You can return to private practice anytime.'],
 ];
 

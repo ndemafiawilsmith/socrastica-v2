@@ -28,7 +28,7 @@ async function main(){
   assert.equal((await fetch(base+asset[1].replaceAll('&amp;','&'))).status,200);
  }
  assert.equal((await call('/studio')).status,307);
- assert.equal((await call('/api/studio')).status,401);
+ assert.equal((await call('/api/studio/contains-duplicate')).status,401);
  const callback=await call('/auth/callback?next=https://example.com');
  assert.equal(callback.status,307);assert.equal(callback.headers.get('location'),origin+'/login?error=confirmation');
  console.log('PASS hosted pages, stylesheets, protected studio, and API authentication');
@@ -36,13 +36,13 @@ async function main(){
  const created=await admin.auth.admin.createUser({email,password,email_confirm:true});assert.ifError(created.error);userId=created.data.user.id;
  const client=createServerClient(process.env.NEXT_PUBLIC_SUPABASE_URL,process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY,{cookies:{getAll:()=>[...jar].map(([name,value])=>({name,value})),setAll:values=>values.forEach(({name,value})=>jar.set(name,value))}});
  assert.ifError((await client.auth.signInWithPassword({email,password})).error);
- const session=await call('/api/studio');assert.equal(session.status,200);
+ const session=await call('/api/studio/contains-duplicate');assert.equal(session.status,200);
  const code='function containsDuplicate(nums: number[]): boolean { const seen = new Set<number>(); for (const value of nums) { if (seen.has(value)) return true; seen.add(value); } return false; }';
- const saved=await call('/api/studio','PATCH',{blueprint:session.data.blueprint,code,revision:session.data.blueprint_revision});assert.equal(saved.status,200,saved.data.error);
- assert.equal((await call('/api/studio')).data.code,code);
- assert.equal((await call('/api/studio','PATCH',{blueprint:session.data.blueprint,code,revision:saved.data.blueprint_revision},'https://example.com')).status,403);
+ const saved=await call('/api/studio/contains-duplicate','PATCH',{blueprint:session.data.blueprint,code,revision:session.data.blueprint_revision});assert.equal(saved.status,200,saved.data.error);
+ assert.equal((await call('/api/studio/contains-duplicate')).data.code,code);
+ assert.equal((await call('/api/studio/contains-duplicate','PATCH',{blueprint:session.data.blueprint,code,revision:saved.data.blueprint_revision},'https://example.com')).status,403);
  console.log('PASS hosted sign-in, persistence, and origin guard');
- const run=await call('/api/studio/run','POST',{revision:saved.data.blueprint_revision});
+ const run=await call('/api/studio/contains-duplicate/run','POST',{revision:saved.data.blueprint_revision});
  assert.equal(run.status,200,run.data.error);assert.equal(run.data.passed,true);assert.equal(run.data.total,40);
  console.log('PASS hosted in-process sandbox run on 40 inputs');
  assert.ifError((await client.auth.signOut()).error);

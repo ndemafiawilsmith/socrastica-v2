@@ -3,92 +3,98 @@
     {
       "id": "input",
       "op": "start",
-      "label": "Receive numbers",
-      "x": 160,
-      "y": 40
+      "label": "Input",
+      "x": 170,
+      "y": 70
     },
     {
       "id": "memory",
       "op": "initSet",
-      "label": "Create a seen set",
-      "x": 160,
-      "y": 155
+      "label": "Memory shelf",
+      "x": 170,
+      "y": 180
     },
     {
       "id": "loop",
       "op": "loop",
-      "label": "Take the next number",
-      "x": 160,
-      "y": 270
+      "label": "Next item",
+      "x": 170,
+      "y": 290
     },
     {
       "id": "check",
       "op": "has",
-      "label": "Seen this number before?",
-      "x": 160,
-      "y": 390
+      "label": "Seen before?",
+      "x": 170,
+      "y": 400
     },
     {
       "id": "remember",
       "op": "add",
-      "label": "Remember the number",
-      "x": 160,
-      "y": 520
-    },
-    {
-      "id": "yes",
-      "op": "returnTrue",
-      "label": "Found a duplicate",
-      "x": 500,
+      "label": "Remember item",
+      "x": 470,
       "y": 510
     },
     {
+      "id": "yes",
+      "op": "return",
+      "label": "Return true",
+      "x": 170,
+      "y": 510,
+      "params": {
+        "what": "true"
+      }
+    },
+    {
       "id": "no",
-      "op": "returnFalse",
-      "label": "No duplicates",
-      "x": 500,
-      "y": 270
+      "op": "return",
+      "label": "Return false",
+      "x": 470,
+      "y": 400,
+      "params": {
+        "what": "false"
+      }
     }
   ],
   "edges": [
     {
-      "id": "a",
+      "id": "e0",
       "source": "input",
       "target": "memory",
       "port": "next"
     },
     {
-      "id": "b",
+      "id": "e1",
       "source": "memory",
       "target": "loop",
       "port": "next"
     },
     {
-      "id": "c",
+      "id": "e2",
       "source": "loop",
       "target": "check",
       "port": "yes"
     },
     {
-      "id": "d",
+      "id": "e3",
       "source": "loop",
       "target": "no",
       "port": "no"
     },
     {
-      "id": "e",
+      "id": "e4",
       "source": "check",
       "target": "yes",
       "port": "yes"
     },
     {
-      "id": "f",
+      "id": "e5",
       "source": "check",
       "target": "remember",
       "port": "no"
     },
     {
-      "id": "g",
+      "id": "e6",
       "source": "remember",
       "target": "loop",
       "port": "next"
