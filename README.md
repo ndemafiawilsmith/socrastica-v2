@@ -1,6 +1,6 @@
 # Socrastica
 
-Next.js learning platform with a glass landing page and an authenticated learning studio.
+A learning studio where you explain an idea, build it from blocks, watch it run on real inputs, and only then let AI turn it into code. Next.js 15, Supabase, an in-process QuickJS sandbox, and one budget-guarded AI model.
 
 ## Run
 
@@ -9,66 +9,45 @@ npm install
 npm run dev
 ```
 
-Open http://localhost:3000. Browse `/exercises`, then sign in to save your work. New sign-ins open the library; links preserve the chosen activity.
+Open http://localhost:3000. Browse `/exercises`, open any activity at `/learn/<id>`, and start building as a guest. Sign in to save to an account, draft code with AI, run code in the sandbox, join a class, or share a blueprint.
 
-## Available now
+## What it does
 
-- Email/password sign-up and sign-in, sign-out, confirmation callback, and password reset screens.
-- Server-verified sessions, cookie refresh, and a protected learning studio.
-- Supabase-backed editable blueprints and code drafts with autosave and revision conflict protection.
-- Voice or text direction using the existing budgeted model, with short canvas nudges and optional spoken playback.
-- Draggable typed logic blocks, editable connections, animated packet simulation, visible memory, and failing-node highlights.
-- Streamed AI TypeScript drafting after a blueprint passes 40 checks. Drafts are checked independently in isolated QuickJS before saving.
-
-The public `/exercises` library now has 21 activities, including currency conversion, percentages, units, geometry, lists, and text. See [EXERCISES.md](EXERCISES.md) for the new ordered-plan workspaces. The branching `/studio` activity is duplicate detection. Learners direct or connect start, memory, loop, membership, add, and return blocks. Simulation interprets the exact operations and connections locally, without AI calls. Passing finite tests is evidence, not a guarantee for all inputs. Monaco also supports the existing ECS Fargate runner and its eight reviewed tests.
-
-Voice uses the browser SpeechRecognition API in supported secure-context browsers. Recognition may be processed remotely by the browser provider; only the transcript goes to the drafter. Concepts appear immediately, then a pause or Send creates a reviewable AI proposal. Students choose Apply or Keep my canvas. Text remains available everywhere. Optional spoken nudges use browser speech synthesis; no paid audio model is used.
+- **25 activities on one engine.** Money, numbers, lists, and text, from "naira to dollars" to "is the list sorted". Every activity is data in `src/lib/challenges.ts`: mission, offered blocks, an oracle, sample cases, seeded verification inputs, a reference blueprint, and a common mistake. The interpreter in `src/lib/blueprint.ts` runs them all.
+- **A blueprint canvas.** Drag typed blocks (memory, loop, compare, accumulate, math, transform, return, and more), connect yes/no paths, edit numbers in the inspector, undo and redo.
+- **Simulation you can see.** A packet strip shows the input with the current item lifted and memory, total, and count updating. Blocks light up as the packet moves, loops show their pass count and progress ring, and the forty verification inputs fill in as a grid of dots. Step, scrub, pause at breakpoints, run to a block, and predict branches.
+- **Guidance without answers.** Repair previews, "show me why" explanations, a memory demonstration, and one-click previews of a working idea and a common mistake. Previews never overwrite your canvas until you apply them.
+- **Code, when the idea works.** AI drafts code from your exact blocks, streams it into the editor, and it is only saved if it matches both the oracle and your blueprint on all forty inputs in an isolated sandbox. During playback the matching code lines highlight. Run tests checks any code you write yourself.
+- **Guest mode.** Everything except AI, saving, classes, and sharing works without an account, with state kept in the browser. Signing in imports that work.
+- **Classes and progress.** Instructors create private classes, set hint depth, require a correct prediction before drafting, pause drafting, review each student's journal across activities, and leave rubric feedback. Students see their story on `/progress` and can publish read-only replayable snapshots at `/share/<token>`.
 
 ## Configuration
 
-Use `.env.local` (ignored by Git), following `.env.example`. Keep `OPENAI_API_KEY`, `SUPABASE_SECRET_KEY`, and the migration access token out of browser code.
+Use `.env.local` (ignored by Git), following `.env.example`. Keep `OPENAI_API_KEY`, `SUPABASE_SECRET_KEY`, and `SUPABASE_ACCESS_TOKEN` out of browser code. The approved model and the budget limits it assumes live in `src/lib/ai-config.ts`; the SQL reservation function enforces them.
 
-The Supabase migration has been applied to the configured project. `SUPABASE_ACCESS_TOKEN` is a management credential used only for deployment scripts. The runtime uses the server secret for writes after validating the user and enforcing ownership; reads also use user-scoped row-level security.
+Apply migrations in order with `node scripts/migrate.cjs <file>`; the current chain ends at `202610090001_sharing.sql`. Email confirmation is required; auth email goes through Resend SMTP configured in Supabase (see `emails/auth/README.md`).
 
-Email confirmation is required. Supabase now uses Resend SMTP with `accounts@socrastica.com` and six branded auth templates. The sending-only key can authenticate SMTP but cannot read domain verification status; check that `socrastica.com` is verified in Resend. Actual inbox delivery requires a recipient test. See `BACKEND_SETUP.md` and `emails/auth/README.md`.
+## Budget and limits
 
-## Budget
+Each AI attempt reserves $0.01 in an atomic transaction against a $2 shared testing allowance, with 20 attempts per user per rolling day, a 10-second cooldown, and one active request per user. Failed attempts stay reserved. Sandbox runs are limited to 50 per user per day with a 10-second gap. Blueprints take up to 24 blocks; code up to 15 KB; each sandboxed test case gets 32 MB, a 150 ms deadline, and no access to modules, network, or the host. Passing finite samples is evidence, not a proof.
 
-The mentor accepts at most 2,000 message characters, sends at most six recent messages within a 12 KB history bound plus bounded prior reasoning/map notes, disables reasoning, and allows at most 1,000 output tokens for the combined reply/readiness/graph JSON. It has no paid tools and no automatic provider retries.
-
-Each attempt reserves $0.01 in an atomic database transaction. The shared testing allowance is $2, allowing up to 200 attempts across users, with 20 per user per rolling 24 hours, a 10-second cooldown, and one active request per user. Failed attempts remain reserved. The reservation is a conservative guardrail, not the actual billed token cost. No more requests are sent once the counter is exhausted or unavailable. This only governs requests through this application; other uses of the API key are outside this counter.
-
-## Verify and deploy
+## Verify
 
 ```sh
 npm run typecheck
-npm run build
-npm run start
-npm run test:integration
-npm run test:blueprint
-npm run test:studio
-npm run test:exercises
-npm run usage:status
-npm run test:runner
-npm run test:execution
+npm run test:blueprint        # engine, 25 challenges, verification, guidance (no server needed)
+npm run dev                   # then, in another shell:
+npm run test:studio           # auth, persistence, sandbox run, share links
+npm run test:teaching         # classes, sharing boundaries, predictions, policy
+npm run test:production       # auth pages and route guards
+npm run test:browser          # drives the real studio in the installed Chrome
+npm run build && npm run start
 ```
 
-`build` and `start` use `.next-build`, while `dev` uses `.next`, so production validation does not overwrite a running dev server's files.
+`test:studio -- --live` adds two paid AI calls. The browser test writes screenshots to `infra/aws/private/screens/`. Integration scripts create and remove their own confirmed test accounts.
 
-The integration script creates and removes its own temporary confirmed test accounts. It verifies authorization, persistence, isolation, and quota enforcement. Add `--live-ai` when running the script directly to include one paid mentor request; normal integration tests do not call OpenAI. Budget-function tests are rolled back.
+## Deploy
 
-`npm run test:reasoning` makes two budgeted live AI calls to check incomplete reasoning, automatic Map advancement, graph persistence, stale-save protection, and opening Build. It creates/removes its own test account. It does not send auth email. Branded email templates are generated by `scripts/email-templates.cjs`; `npm run auth:email` publishes SMTP/templates, while `npm run email:preview` serves sample-token previews locally on port 3010.
+The site runs on one EC2 host behind Caddy; see `infra/aws/HOSTING.md`. Push to GitHub `main`, apply any new migration, then `node scripts/deploy-web.cjs --update`. No AWS resources are used at runtime; the former Fargate runner has been retired.
 
-Apply the versioned database migration with `npm run db:migrate`. Set production environment variables in the hosting platform, update `NEXT_PUBLIC_APP_URL`, and register production auth callback URLs in Supabase before publishing.
-
-The execution migration is `node scripts/migrate.cjs 202610020001_execution.sql`. The shared execution allowance is 200 attempted runs, with 20 per person per rolling day and four active submissions. Failures consume reservations. The runner exits after its job; an independent AWS Lambda watchdog checks overdue tasks every minute. S3 execution files expire after one day (AWS lifecycle deletion is asynchronous); runner/watchdog logs retain three days. The allowance limits submissions through this app, not unrelated AWS usage or a guaranteed dollar ceiling.
-
-See `infra/aws/README.md` for AWS bootstrap and `infra/aws/HOSTING.md` for EC2 deployment and GitHub updates. Local calls use the `socrastica` profile in account `954633149655`; never use the unrelated default profile. Production omits AWS_PROFILE and uses a narrowly scoped application role. The website, HTTPS domain, required application environment, and production auth callbacks are configured. Hosted code execution awaits the additional EC2 instance-profile permission and verification described in BACKEND_SETUP.md.
-
-`SOURCE.md` contains the ordered copy-ready configuration and app source. Monaco uses its default external loader; self-host workers/assets for deployments requiring an offline editor or a strict CSP. Next/font downloads Geist during a build.
-
-The canvas migration is `node scripts/migrate.cjs 202610040001_blueprint.sql`. `npm run test:studio -- --live` adds two paid calls for AI direction and streamed drafting; ordinary studio tests do not call OpenAI. Both legacy mentor and studio endpoints share the same existing AI allowance; this upgrade does not reset it.
-
-The Learning guide adds concrete repair previews, plain-language block explanations, memory demonstrations, branch predictions, rewind/scrubbing, Undo/Redo, saved reflections, and version comparison. New generated code includes canvas node markers. `/instructor` provides private classes, consent-based sharing, evidence review, guidance settings, drafting controls, and manual rubric feedback. Apply `202610050001_teaching.sql` after the canvas migration; run `npm run test:teaching` against a running local server. See [STUDIO.md](STUDIO.md) for sharing boundaries and limitations.
-
-Apply `202610060001_exercises.sql` for separate exercise progress, transactional saves, and isolated-run quotas. Run `node scripts/test-exercises.cjs --integration` against the local server; `--live` adds one budgeted currency draft. The landing page uses a short introduction, a playable number example, and links to the exercise library. No new release has been deployed to AWS by these local changes.
+See `STUDIO.md` for how the studio and the engine work, and `EXERCISES.md` for adding an activity. `PLAN.md` records the October 2026 upgrade.

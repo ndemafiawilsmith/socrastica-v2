@@ -15,7 +15,7 @@
     "auth:email": "node scripts/configure-auth-email.cjs",
     "email:preview": "node scripts/preview-emails.cjs",
     "test:teaching": "node scripts/test-teaching.cjs",
-    "test:exercises": "node scripts/test-exercises.cjs"
+    "test:browser": "node scripts/test-browser.cjs",
   },
   "dependencies": {
     "@aws-sdk/client-ec2": "^3.1145.0",

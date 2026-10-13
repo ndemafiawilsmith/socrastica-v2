@@ -41,9 +41,9 @@ Started October 13, 2026. Each item becomes its own commit on `main`. Boxes are 
 
 ## Phase 4: product
 
-- [ ] 4.1 Guest mode with browser-local state, sign-in gates for saving, AI, classes, and sharing, and a one-click import of guest work after sign-in.
-- [ ] 4.2 Shareable read-only blueprint links at `/share/[token]` with a replayable trace.
-- [ ] 4.3 Student progress page at `/progress`: every challenge with status, reflections, and instructor feedback.
+- [x] 4.1 Guest mode with browser-local state, sign-in gates for saving, AI, classes, and sharing, and a one-click import of guest work after sign-in.
+- [x] 4.2 Shareable read-only blueprint links at `/share/[token]` with a replayable trace.
+- [x] 4.3 Student progress page at `/progress`: every challenge with status, reflections, and instructor feedback.
 
 ## Phase 5: verification, docs, release
 

@@ -32,6 +32,23 @@ async function main(){
  const other=(await call('/api/studio/contains-duplicate',second)).data;assert.equal(other.blueprint.nodes.length,1);assert.notEqual(other.code,'// saved test draft');
  const rls=await second.client.from('learning_sessions').select('blueprint').eq('user_id',first.id);assert.ifError(rls.error);assert.equal(rls.data.length,0);
  console.log('PASS saved layout/edges, revision conflicts, account isolation, and RLS');
+ // In-process sandbox run on saved code, with its cooldown.
+ const code='function containsDuplicate(nums: number[]): boolean { const seen=new Set<number>(); for(const n of nums){ if(seen.has(n)) return true; seen.add(n);} return false; }';
+ document=(await call('/api/studio/contains-duplicate',first,'PATCH',{blueprint:graph,code,revision:document.blueprint_revision})).data;
+ const run=await call('/api/studio/contains-duplicate/run',first,'POST',{revision:document.blueprint_revision});assert.equal(run.status,200,run.data.error);assert.equal(run.data.passed,true);assert.equal(run.data.total,40);
+ assert.equal((await call('/api/studio/contains-duplicate/run',first,'POST',{revision:document.blueprint_revision})).status,429,'Run cooldown');
+ // Every activity has its own independent session; unknown activities are rejected.
+ const naira=(await call('/api/studio/naira-to-dollar',first)).data;assert.equal(naira.blueprint.nodes.length,1);assert.ok(naira.code.includes('solve'));
+ assert.equal((await call('/api/studio/not-a-challenge',first)).status,404);
+ // Share links: public read-only snapshot, owner-only revocation.
+ assert.equal((await call('/api/share',null,'POST',{challenge:'contains-duplicate'})).status,401);
+ const share=await call('/api/share',first,'POST',{challenge:'contains-duplicate',note:'My idea'});assert.equal(share.status,201,share.data.error);assert.match(share.data.token,/^[a-z0-9]{12}$/);
+ const page=await fetch(base+'/share/'+share.data.token);assert.equal(page.status,200);assert.ok((await page.text()).includes('Spot the duplicate'));
+ assert.equal((await call('/api/share?token='+share.data.token,second,'DELETE')).status,404,'Only the owner can revoke');
+ assert.equal((await call('/api/share?token='+share.data.token,first,'DELETE')).status,200);
+ assert.equal((await fetch(base+'/share/'+share.data.token)).status,404);
+ assert.equal((await call('/api/share',first)).data.shares.length,1);
+ console.log('PASS in-process sandbox run, independent sessions per activity, and share links with revocation');
  if(process.argv.includes('--live')){
   const direct=await call('/api/studio/contains-duplicate/direct',first,'POST',{revision:document.blueprint_revision,text:'Use an initially empty seen set. For each number, first check whether it is in the set. If yes, return true. If no, add it to the set and continue to the next number. When there are no numbers left, return false, including an empty list.'});assert.equal(direct.status,200,direct.data.error);assert.equal(direct.data.baseRevision,document.blueprint_revision);assert.deepEqual((await call('/api/studio/contains-duplicate',first)).data.blueprint,document.blueprint,'AI proposals must not replace the canvas');document=(await call('/api/studio/contains-duplicate',first,'PATCH',{blueprint:direct.data.blueprint,code:document.code,revision:document.blueprint_revision})).data;
   console.log('PASS live AI direction produces a reviewable proposal that is saved only after approval');
