@@ -9,10 +9,9 @@ const files = [
  'supabase/migrations/202610050001_teaching.sql','src/lib/classroom.ts','src/lib/guidance.ts','src/lib/teaching-server.ts','src/components/TeachingRail.tsx','src/components/LearningJournal.tsx','src/components/BlueprintMiniMap.tsx','src/app/api/studio/history/route.ts','src/app/api/classrooms/route.ts','src/app/api/classrooms/join/route.ts','src/app/api/classrooms/[id]/route.ts','src/app/instructor/layout.tsx','src/app/instructor/page.tsx',
  'supabase/migrations/202610060001_exercises.sql','src/lib/exercises.ts','src/lib/exercise-runner.ts','src/lib/auth-destination.ts','src/components/ExerciseLibrary.tsx','src/components/ExerciseWorkspace.tsx','src/app/exercises/page.tsx','src/app/learn/[id]/page.tsx','src/app/api/exercises/[id]/route.ts',
  'src/app/layout.tsx','src/app/globals.css','src/components/Logo.tsx',
- 'src/lib/supabase/browser.ts','src/lib/supabase/server.ts','src/middleware.ts','src/lib/http.ts','src/lib/learning.ts','src/lib/reasoning.ts','src/lib/mentor.ts','src/lib/use-learning-session.ts',
+ 'src/lib/supabase/browser.ts','src/lib/supabase/server.ts','src/middleware.ts','src/lib/http.ts',
  'src/components/AuthForm.tsx','src/app/login/page.tsx','src/app/signup/page.tsx','src/app/forgot-password/page.tsx','src/app/reset-password/page.tsx','src/app/auth/callback/route.ts',
- 'src/app/api/progress/route.ts','src/app/api/mentor/route.ts','src/app/studio/layout.tsx',
- 'src/components/SocraticChat.tsx','src/components/FlowchartViewer.tsx','src/components/CodeWorkspace.tsx','src/app/studio/page.tsx','src/app/page.tsx',
+ 'src/app/studio/layout.tsx','src/components/CodeWorkspace.tsx','src/app/studio/page.tsx','src/app/page.tsx',
 ];
 const parts = ['# Socrastica — complete copy-ready source', 'Install dependencies, configure `.env.local` from the blank `.env.example`, apply the database migration, and run `npm run dev`. Landing page: `/`. Protected studio: `/studio`. See README.md and BACKEND_SETUP.md for completed integrations and remaining services.'];
 for (const file of files) {

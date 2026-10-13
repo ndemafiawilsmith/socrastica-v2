@@ -31,8 +31,7 @@ async function main(){
  assert.equal((await call('/api/studio',first)).data.code,'// saved test draft');
  const other=(await call('/api/studio',second)).data;assert.equal(other.blueprint.nodes.length,1);assert.notEqual(other.code,'// saved test draft');
  const rls=await second.client.from('learning_sessions').select('blueprint').eq('user_id',first.id);assert.ifError(rls.error);assert.equal(rls.data.length,0);
- assert.equal((await call('/api/progress',first,'PATCH',{code:'// legacy stale overwrite',step:1,unlocked:1})).status,503);
- console.log('PASS saved layout/edges, revision conflicts, account isolation, RLS, and legacy overwrite protection');
+ console.log('PASS saved layout/edges, revision conflicts, account isolation, and RLS');
  if(process.argv.includes('--live')){
   const direct=await call('/api/studio/direct',first,'POST',{revision:document.blueprint_revision,text:'Use an initially empty seen set. For each number, first check whether it is in the set. If yes, return true. If no, add it to the set and continue to the next number. When there are no numbers left, return false, including an empty list.'});assert.equal(direct.status,200,direct.data.error);assert.equal(direct.data.baseRevision,document.blueprint_revision);assert.deepEqual((await call('/api/studio',first)).data.blueprint,document.blueprint,'AI proposals must not replace the canvas');document=(await call('/api/studio',first,'PATCH',{blueprint:direct.data.blueprint,code:document.code,revision:document.blueprint_revision})).data;
   console.log('PASS live AI direction produces a reviewable proposal that is saved only after approval');

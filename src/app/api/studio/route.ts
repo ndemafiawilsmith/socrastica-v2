@@ -1,9 +1,7 @@
 import { NextRequest,NextResponse } from 'next/server';
 import { z } from 'zod';
 import { serverClient,adminClient } from '@/lib/supabase/server';
-import { blueprintSchema,emptyBlueprint,blueprintKey } from '@/lib/blueprint';
-import { starterCode } from '@/lib/mentor';
-import { welcomeMessage } from '@/lib/learning';
+import { blueprintSchema,emptyBlueprint,blueprintKey,starterCode } from '@/lib/blueprint';
 import { sameOrigin,readBody } from '@/lib/http';
 import { learningContext } from '@/lib/teaching-server';
 export const dynamic='force-dynamic';
@@ -12,7 +10,7 @@ const response=(data:unknown,status=200)=>NextResponse.json(data,{status,headers
 export async function GET(){
   try{
     const db=await serverClient();const {data:{user}}=await db.auth.getUser();if(!user)return response({error:'Sign in to open your canvas.'},401);
-    const admin=adminClient();const init=await admin.from('learning_sessions').upsert({user_id:user.id,code:starterCode,messages:[welcomeMessage]},{onConflict:'user_id,challenge_id',ignoreDuplicates:true});if(init.error)throw init.error;
+    const admin=adminClient();const init=await admin.from('learning_sessions').upsert({user_id:user.id,code:starterCode},{onConflict:'user_id,challenge_id',ignoreDuplicates:true});if(init.error)throw init.error;
     const {data,error}=await db.from('learning_sessions').select(fields).eq('user_id',user.id).eq('challenge_id','contains-duplicate').single();if(error)throw error;
     return response({...data,blueprint:data.blueprint||emptyBlueprint,email:user.email,...await learningContext(user.id)});
   }catch{return response({error:'Your saved canvas is unavailable. Retry loading it.'},503);}

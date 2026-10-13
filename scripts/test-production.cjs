@@ -6,7 +6,7 @@ async function main(){
  }
  const studio=await fetch(base+'/studio',{redirect:'manual'});assert.equal(studio.status,307);assert.equal(studio.headers.get('location'),'/login');
  const callback=await fetch(base+'/auth/callback?next=https://example.com',{redirect:'manual'});assert.equal(callback.status,307);assert.ok(new URL(callback.headers.get('location')).pathname==='/login');
- const api=await fetch(base+'/api/progress');assert.equal(api.status,401);
+ const api=await fetch(base+'/api/studio');assert.equal(api.status,401);
  console.log('PASS production protected route, safe auth redirect, and API access guard');
 }
 main().catch(error=>{console.error('FAIL '+error.message);process.exitCode=1;});

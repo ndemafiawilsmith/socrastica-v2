@@ -21,6 +21,15 @@ export const blueprintSchema=z.object({
 });
 export type Blueprint=z.infer<typeof blueprintSchema>;
 export const emptyBlueprint:Blueprint={nodes:[{id:'input',op:'start',label:'Input array',x:200,y:70}],edges:[]};
+export const starterCode=`/** Return true if any number appears twice. */
+function containsDuplicate(nums: number[]): boolean {
+  // Translate your blueprint into code.
+  // 1. Remember the numbers you have seen.
+  // 2. Check each number before storing it.
+  // 3. Handle reaching the end.
+  return false;
+}
+`;
 export function blueprintKey(graph:Blueprint){
   return JSON.stringify({nodes:graph.nodes.map(({id,op})=>({id,op})).sort((a,b)=>a.id.localeCompare(b.id)),edges:graph.edges.map(({source,target,port})=>({source,target,port})).sort((a,b)=>JSON.stringify(a).localeCompare(JSON.stringify(b)))});
 }
