@@ -20,7 +20,7 @@ Started October 13, 2026. Each item becomes its own commit on `main`. Boxes are 
 - [x] 1.1 In-process code check replaces the Fargate runner. Delete the execute route, execution lib, runner image, watchdog, provisioning and execution test scripts, the AWS SDK dependencies, and the AWS environment variables. Add a migration that drops the execution tables and function.
 - [ ] 1.2 Tear down the AWS execution resources: ECS cluster and task definition, ECR repository, execution S3 bucket, runner security group, runner and watchdog log groups, watchdog Lambda and EventBridge rule, watchdog and task-execution IAM roles. Narrow the web role policy to nothing execution-related.
 - [x] 1.3 Delete the dead mentor chat: Socratic chat, Mermaid flowchart viewer, reasoning schema, mentor and progress routes, learning-session hook, their test scripts, and the Mermaid dependency.
-- [ ] 1.4 One AI configuration module holds the approved model and budget constants. Routes and tests import it instead of string-matching the model name.
+- [x] 1.4 One AI configuration module holds the approved model and budget constants. Routes and tests import it instead of string-matching the model name.
 
 ## Phase 2: challenge engine
 

@@ -4,7 +4,7 @@ import { serverClient,adminClient } from '@/lib/supabase/server';
 import { blueprintSchema,emptyBlueprint,simulateSuite,partialCode } from '@/lib/blueprint';
 import { verifyBlueprintCode,draftHash } from '@/lib/blueprint-code';
 import { sameOrigin,readBody } from '@/lib/http';
-import { reserveStudioAI,finishStudioAI,providerOptions,StudioError,structuredText } from '@/lib/studio-ai';
+import { reserveStudioAI,finishStudioAI,providerRequest,StudioError,structuredText } from '@/lib/studio-ai';
 import { enforceDraftPolicy } from '@/lib/teaching-server';
 import { blueprintKey } from '@/lib/blueprint';
 export const runtime='nodejs';export const maxDuration=60;
@@ -22,7 +22,7 @@ export async function POST(request:NextRequest){
     if(!suite.passed)return NextResponse.json({error:suite.error||'Fix the blueprint before drafting code.',nodeId:suite.nodeId},{status:422});
     await enforceDraftPolicy(user.id,blueprint);
     reservation=await reserveStudioAI(user.id);
-    const provider=await fetch('https://api.openai.com/v1/responses',providerOptions(instructions,JSON.stringify({blueprint}),format,true));if(!provider.ok||!provider.body)throw new StudioError('Code drafting is unavailable. Your work was kept; no automatic retry was made.');
+    const provider=await providerRequest(instructions,JSON.stringify({blueprint}),format,true);if(!provider.ok||!provider.body)throw new StudioError('Code drafting is unavailable. Your work was kept; no automatic retry was made.');
     const requestId=reservation;reservation=undefined;
     const stream=new ReadableStream({async start(controller){
       const encoder=new TextEncoder();let connected=true;

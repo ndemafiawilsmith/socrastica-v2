@@ -3,7 +3,8 @@ import { z } from 'zod';
 import { serverClient,adminClient } from '@/lib/supabase/server';
 import { blueprintSchema,emptyBlueprint,operations,placeBlueprint } from '@/lib/blueprint';
 import { sameOrigin,readBody } from '@/lib/http';
-import { reserveStudioAI,finishStudioAI,providerOptions,structuredText,StudioError } from '@/lib/studio-ai';
+import { aiLimits } from '@/lib/ai-config';
+import { reserveStudioAI,finishStudioAI,providerRequest,structuredText,StudioError } from '@/lib/studio-ai';
 import { recordEvent } from '@/lib/teaching-server';
 export const runtime='nodejs';
 const node=z.object({id:z.string(),op:z.enum(operations),label:z.string().max(80)}).strict();
@@ -16,12 +17,12 @@ export async function POST(request:NextRequest){
   try{
     const db=await serverClient();const {data:{user}}=await db.auth.getUser();if(!user)return NextResponse.json({error:'Sign in to direct the drafter.'},{status:401});
     let payload;try{payload=await readBody(request,10000);}catch{return NextResponse.json({error:'Invalid or oversized request.'},{status:400});}
-    const body=z.object({text:z.string().trim().min(1).max(2000),revision:z.number().int().min(0)}).strict().safeParse(payload);if(!body.success)return NextResponse.json({error:'Keep your direction under 2,000 characters.'},{status:400});
+    const body=z.object({text:z.string().trim().min(1).max(aiLimits.maxDirectionChars),revision:z.number().int().min(0)}).strict().safeParse(payload);if(!body.success)return NextResponse.json({error:'Keep your direction under 2,000 characters.'},{status:400});
     const {data:session,error}=await db.from('learning_sessions').select('blueprint,blueprint_revision').eq('user_id',user.id).eq('challenge_id','contains-duplicate').single();if(error)throw error;
     if(session.blueprint_revision!==body.data.revision)throw new StudioError('The canvas changed in another tab. Reload before drafting.',409);
     const previous=blueprintSchema.parse(session.blueprint||emptyBlueprint);
     reservation=await reserveStudioAI(user.id);
-    const response=await fetch('https://api.openai.com/v1/responses',providerOptions(instructions,JSON.stringify({blueprint:previous,direction:body.data.text}),format));if(!response.ok)throw new StudioError('The drafter is unavailable. Your canvas was kept; no automatic retry was made.');
+    const response=await providerRequest(instructions,JSON.stringify({blueprint:previous,direction:body.data.text}),format);if(!response.ok)throw new StudioError('The drafter is unavailable. Your canvas was kept; no automatic retry was made.');
     const result=await response.json();const draft=resultSchema.parse(JSON.parse(structuredText(result)));
     const blueprint=placeBlueprint({nodes:draft.nodes,edges:draft.edges.map((edge,index)=>({id:`edge_${index}`, ...edge}))},previous);
     const latest=await db.from('learning_sessions').select('blueprint_revision').eq('user_id',user.id).eq('challenge_id','contains-duplicate').single();

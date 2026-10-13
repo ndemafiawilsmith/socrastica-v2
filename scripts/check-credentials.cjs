@@ -18,6 +18,7 @@ async function main() {
   console.log('Supabase URL: valid project URL');
   await probe('Supabase public key / Auth settings', `${url.origin}/auth/v1/settings`, { apikey: process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY });
   if(process.env.SUPABASE_SECRET_KEY) await probe('Supabase server key / Auth settings', `${url.origin}/auth/v1/settings`, { apikey: process.env.SUPABASE_SECRET_KEY });
-  await probe('OpenAI key / selected model gpt-6-luna', 'https://api.openai.com/v1/models/gpt-6-luna', { Authorization: `Bearer ${process.env.OPENAI_API_KEY}` });
+  const model=process.env.OPENAI_MODEL||'(unset)';
+  await probe(`OpenAI key / selected model ${model}`, `https://api.openai.com/v1/models/${encodeURIComponent(model)}`, { Authorization: `Bearer ${process.env.OPENAI_API_KEY}` });
 }
 main().catch(() => { console.log('Validation failed; no secret values logged'); process.exitCode = 1; });
