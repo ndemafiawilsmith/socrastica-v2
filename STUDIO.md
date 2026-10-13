@@ -1,52 +1,57 @@
-# Architecture studio
+# The studio and the engine
 
-Open `/studio` after signing in. The current sandbox supports the duplicate-detection challenge.
+Every activity opens at `/learn/<id>`. Guests get the full canvas with browser-local state; signing in adds saving, AI drafting, the sandbox, classes, and sharing.
 
-1. Speak a direction or type it into the director strip. Mentioned concepts appear during speech; a pause or Send asks the AI for a proposal. Review its changes and apply or discard it. Listening notes and proposals do not overwrite your saved canvas. Microphone access is opt-in. Recognition depends on browser support and may use the browser provider's remote speech service.
-2. Drag blocks from the library, or click to add them. Connect an output handle to another block's input. A connection replaces the existing connection on that output. Select a block to rename or remove it; select an edge and press Delete to remove a connection. Pan, zoom, and Fit view are available.
-3. Choose a sample or enter a JSON array, then Simulate. Pause, step backward or forward, scrub through the trace, or change playback speed. Branch predictions pause playback by default; choose a path in the Learning guide, then continue. Answers are checked on the saved graph by the server. The packet and seen set show the actual interpreted state. A dead end or incorrect result highlights the block to revisit.
-4. A successful trace triggers the 40-input suite. Automatic drafting is off initially; students choose when to inspect the code. Once the suite passes, AI code streams into Monaco, then an isolated runtime checks it on the same inputs before saving. Run tests invokes the separate ECS runner.
+## How a session flows
 
-## Executable blocks
+1. **Explain your idea.** Speak or type a direction. Mentioned blocks appear as listening notes; a pause or Send asks the AI drafter for a proposal built only from the activity's block library. Review it, then apply or keep your canvas.
+2. **Build.** Drag blocks from the library or click to add them. Connect outputs to inputs; a connection replaces the existing one on that output. Select a block to rename it, change its number, pause the packet there, run to it, or remove it. Undo and redo cover thirty local steps.
+3. **Play and predict.** Choose a sample or type an input, then Simulate. The packet strip lifts the current item and dims read ones; memory, total, count, and the answer update beside it. Blocks light up, loops show their pass count and a progress ring, and the trace scrubber lets you step or scrub. Prediction mode pauses at every decision until you choose a path; answers are checked by the same interpreter on the server for signed-in learners and locally for guests.
+4. **Verify.** A successful trace runs the forty verification inputs and fills the suite grid. A failing dot replays that input. Only a blueprint that passes them all can be drafted into code.
+5. **Inspect code.** The drafter writes code from your exact blocks with `// node: ID` markers, streams it into the editor, and saves it only after it matches both the oracle and your blueprint in the sandbox. During playback the active block's code highlights. Run tests checks any code you write yourself against the oracle.
 
-| Block | Meaning | Outputs |
-| --- | --- | --- |
-| Input | Receives the input array | next |
-| Memory shelf | Creates or resets memory | next |
-| Next number | Takes the next item and advances the cursor | yes: item, no: exhausted |
-| Seen before? | Checks membership of the current item | yes: repeat, no: new |
-| Remember number | Adds the current item to memory | next |
-| Return true / false | Finishes with a boolean | none |
+The learning guide offers one concrete repair at a time, a "Show me why" explanation, a memory demonstration for memory blocks, and two previews: a working idea and a common mistake. Previews never change your canvas until you apply them, and Undo brings your idea back.
 
-Labels are descriptions; they never execute. Arbitrary code cannot be embedded into nodes. Changing an operation or connection invalidates simulation approval and the saved draft's verification status. Moving or renaming blocks preserves verification.
+## The block vocabulary
+
+The packet carries five registers: **value** (starts as the input), **current** (the item a loop took), **seen** (a memory set of numbers), **total**, and **count**.
+
+| Block | Settings | Effect | Exits |
+| --- | --- | --- | --- |
+| Input | | Receives the input | next |
+| Memory shelf | | Creates empty memory | next |
+| Next item | | Takes the next list item into current | yes (item taken) / no (exhausted) |
+| Seen before? | | Is current in memory? | yes / no |
+| Remember item | | Adds current to memory | next |
+| Set | target total or count; source 0, 1, current, or the first item | Starts or keeps a number | next |
+| Accumulate | add or multiply | Folds current into total (starting from 0 or 1) | next |
+| Count one | | count + 1 | next |
+| Math | target value or total; multiply, divide, add, subtract, round, remainder; a number, the count, or the total | One arithmetic step | next |
+| Compare | left register; `> < >= <= == !=`, even, odd, same reversed; a number or register | A decision | yes / no |
+| Transform | reverse, lowercase, remove spaces, count characters, sort, count items | Reshapes the value | next |
+| Return | true, false, value, total, count, current | Ends the run | none |
+
+Labels describe blocks and never execute. Only settings validated by `paramSchemas` in `src/lib/blueprint.ts` are stored. Changing a block's operation, setting, or connection invalidates simulation approval and the saved draft's verification; moving or renaming preserves it.
+
+## Challenges
+
+`src/lib/challenges.ts` defines each activity: mission, category, level, input kind and constraints, the function signature the code must have, sample cases, an oracle, the block presets offered, a reference blueprint, and a common mistake with its lesson. `verificationInputs` returns the named samples followed by seeded random inputs, always forty in total. The unit test checks every reference passes its suite and every mistake fails.
 
 ## Persistence and API
 
-- `GET /api/studio`: load or initialize the signed-in user's session.
-- `PATCH /api/studio`: save blueprint and code with a revision check.
-- `POST /api/studio/direct`: produce one budgeted AI proposal for review, leaving the saved canvas intact.
-- `POST /api/studio/generate`: recheck the saved blueprint, stream code as NDJSON, verify it in QuickJS, then save with a revision check.
+Routes live under `/api/studio/[challenge]`:
 
-The additive migration `202610040001_blueprint.sql` stores the blueprint, revision, note, and draft fingerprint. Account isolation uses existing Supabase RLS. A stale legacy progress tab cannot overwrite code in a canvas session.
+- `GET`: open or create the session for the signed-in learner; returns the blueprint, code, revision, class, and feedback.
+- `PATCH`: save blueprint and code with a revision check.
+- `POST direct`: one budgeted AI proposal for review. The drafter picks blocks by library number, so it cannot propose blocks the activity does not offer.
+- `POST generate`: recheck the saved blueprint, stream code as NDJSON, verify it in the sandbox, then commit with a revision check and the class policy enforced inside the SQL function.
+- `POST run`: run the saved code against the oracle in the sandbox.
+- `GET/POST history`: the learning journal; predictions and simulations are recomputed on the server.
 
-Both studio AI endpoints share the existing atomic $2 testing allowance, $0.01 reservation per attempt, 20 requests per user per day, cooldown, and one active request per user. No automatic paid retries or audio-model calls are introduced. Simulation does not require an AI request. Test success is finite evidence, not a guarantee that AI generates flawless code.
+Classes: `/api/classrooms` and `/api/classrooms/join`; joining attaches every session to the class. Sharing: `POST /api/share` snapshots a saved blueprint into `/share/<token>`; `DELETE` revokes it.
 
-## Validation
+The sandbox (`src/lib/sandbox.ts`) transpiles TypeScript and runs each case in a fresh QuickJS runtime with 32 MB, a 150 ms per-case deadline, and no modules, network, or host access. Languages are adapters; a Python adapter would use Pyodide behind the same interface.
 
-`npm run test:blueprint` tests graph interpretation, branches, memory, failures, stream decoding, and isolated generated-code verification. With a local server running, `npm run test:studio` tests auth, persistence, conflicts, ownership, and incomplete-blueprint spending protection. Run `node scripts/test-studio.cjs --live` only when intentionally testing two paid calls. The script creates and removes its own confirmed test users without sending email.
+## Limits and honesty
 
-Microphone capture still needs a manual check on a supported browser and device. Text direction is the fallback. This release's local validation does not establish that the AWS instance is running the new version; deploy it through the release process in `infra/aws/HOSTING.md`.
-
-## Teaching and instructor review
-
-The Learning guide offers one concrete repair at a time, a Show me why explanation, and a memory demonstration for memory-related blocks. Preview before applying; Undo/Redo lets students experiment safely. Selecting a block explains its inputs and effects; new generated drafts carry node comments so corresponding code can be highlighted. A local Undo stack is not retained after reload; saved blueprint snapshots are available through the journal.
-
-The journal retains revisions, AI proposals, hints, server-checked predictions, experiments, and student reflections. The view shows the latest 100 activities, compares graph versions, and previews restoration without changing code automatically. Assistance and finite test results are evidence for human review, not an automated grade. Activity recording is limited to 500 events per user per rolling 24 hours.
-
-Apply additive migration `202610050001_teaching.sql` after the blueprint migration. It adds private classes, membership, feedback, activity history, and service-only transactional save/event functions. Evidence submission checks the revision under the same database lock used to save the canvas. A recorded failing experiment prevents code drafting on that unchanged graph.
-
-Open `/instructor` to create a class, share its invite code, set hint depth, require a correct branch prediction before drafting, or pause code drafting. Students explicitly join from their studio and choose a display name. Joining shares the current duplicate-detection graph/code and subsequent activity with that class owner. Earlier private entries stay private. Returning to private practice hides subsequent work; already-shared evidence remains accessible to the class owner. Each session has one active class. Class owners cannot inspect unrelated students or another instructor's class. Invite codes are visible only to owners. This is a formative learning workspace, not an exam lockdown system.
-
-Instructor review includes current shared architecture/code, version comparison, evidence of assistance and experiments, student explanations, and manual rubric feedback for memory, branching, and edge cases. Student settings are refreshed on reload or class join; drafting permissions and graph-specific predictions are checked again on the server before spending and at commit.
-
-With the production server running, `node scripts/test-teaching.cjs` checks sharing boundaries, RLS, revision races, forged predictions, instructor policy without AI spending, feedback, and returning to private practice. Test accounts are created and removed automatically.
+AI requests share one $2 testing allowance with per-user daily caps. Sandbox runs are limited per user. Forty passing inputs are evidence, not a proof. Instructor review is evidence for a human, not an automated grade. Voice recognition uses the browser's speech service and may process audio remotely; only the transcript reaches the drafter.

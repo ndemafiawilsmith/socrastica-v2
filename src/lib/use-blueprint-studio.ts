@@ -67,6 +67,8 @@ export function useBlueprintStudio(challenge: Challenge, guest = false) {
     const semanticChange = blueprintKey(blueprint) !== blueprintKey(current.current.blueprint), groupKey = blueprintKey(blueprint) + (code === current.current.code ? '|canvas' : '|code'), now = Date.now();
     if (remember && (groupKey !== lastEdit.current.key || now - lastEdit.current.time > 1200)) checkpoint(); lastEdit.current = { key: groupKey, time: now };
     current.current = { ...current.current, blueprint, code, blueprint_note: semanticChange ? '' : current.current.blueprint_note, draft_hash: semanticChange || code !== current.current.code ? null : current.current.draft_hash }; dirty.current = true; setDocument(current.current); setSaveStatus('Unsaved changes…'); setPhase(''); if (semanticChange) setFocusNode(null);
+    // Guest canvases are written to the browser on every edit so a quick reload loses nothing.
+    if (guest) writeGuest(challenge.id, { blueprint, code, events: guestEvents.current });
   }
   function edit(blueprint: Blueprint, code = current.current.code) { setPreview(null); commit(blueprint, code); }
   function undo() { if (busyRef.current) return; const snapshot = undoStack.current.pop(); if (!snapshot) return; redoStack.current.push(current.current); setPreview(null); commit(snapshot.blueprint, snapshot.code, false); lastEdit.current = { key: '', time: 0 }; setHistoryVersion(v => v + 1); }

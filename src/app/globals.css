@@ -217,38 +217,10 @@ html { scroll-behavior: smooth; }
 .exercise-card:hover { border-color:#b5a3ff45; background:#b5a3ff08; }
 .exercise-skills { display:flex; gap:6px; flex-wrap:wrap; margin-top:18px; }
 .exercise-skills span { border:1px solid #ffffff10; border-radius:6px; padding:4px 7px; font-size:9px; color:#9299b1; }
-.exercise-workbench { display:grid; grid-template-columns:1.3fr 1fr; gap:24px; margin-top:30px; align-items:start; }
-.exercise-plan { padding:26px; }
-.exercise-input-block { padding:14px 20px; border:1px solid #ffffff12; background:#ffffff03; border-radius:12px; text-align:center; font-size:12px; color:#b4bace; }
-.exercise-plan-step { border:1px solid #b5a3ff28; background:#b5a3ff06; border-radius:12px; padding:18px; }
-.exercise-plan-step.step-current { border-color:#91ddce80; background:#91ddce08; }
-.exercise-plan-step.step-error { border-color:#fda4af66; }
-.exercise-amount { width:110px; background:#0002; color:white; border:1px solid #ffffff20; border-radius:8px; padding:8px; font-size:12px; }
-.exercise-add-step { display:flex; gap:12px; margin-top:28px; }
-.exercise-add-step select { width:100%; min-width:0; background:#171c2d; border:1px solid #ffffff20; border-radius:10px; padding:10px; font-size:12px; color:#c4c8d7; }
-.exercise-add-step button { flex-shrink:0; }
-.exercise-trace { border-top:1px solid #ffffff12; margin-top:22px; padding-top:20px; }
-.exercise-alert { margin-top:24px; color:#fda4af; font-size:13px; line-height:1.8; border:1px solid #fda4af25; background:#fda4af05; border-radius:12px; padding:16px; }
-.exercise-results { display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:12px; padding:20px; }
-.exercise-results>div { border:1px solid #ffffff10; border-radius:10px; padding:14px; font-size:11px; }
-.exercise-results code { display:block; margin-top:8px; color:#b4bace; word-break:break-word; }
-.exercise-results p { color:#9299b1; margin-top:8px; line-height:1.7; }
-@media(max-width:900px) { .exercise-grid { grid-template-columns:repeat(2,minmax(0,1fr)); } .exercise-workbench { grid-template-columns:1fr; } }
-@media(max-width:600px) { .exercise-grid { grid-template-columns:1fr; } .exercise-feature { flex-direction:column; align-items:flex-start; padding:24px; } .exercise-search { max-width:none; } .exercise-plan { padding:18px; } .exercise-results { grid-template-columns:1fr; } .exercise-plan-step { padding:14px; } }
+@media(max-width:900px) { .exercise-grid { grid-template-columns:repeat(2,minmax(0,1fr)); } }
+@media(max-width:600px) { .exercise-grid { grid-template-columns:1fr; } .exercise-feature { flex-direction:column; align-items:flex-start; padding:24px; } .exercise-search { max-width:none; } }
 
 /* Shared architecture studio for every exercise */
-.exercise-studio-canvas-layout { min-height:620px; }
-.exercise-blueprint-canvas { height:620px; }
-.exercise-logic-block { width:250px; }
-.exercise-block-picker { display:grid; gap:9px; }
-.exercise-block-picker select { width:100%; border:1px solid #ffffff12; border-radius:10px; background:#10121f; padding:10px 11px; color:#e9e8f2; font-size:11px; }
-.exercise-runtime-values { grid-template-columns:1fr; }
-.exercise-runtime-values strong { max-width:100%; overflow-wrap:anywhere; font-size:12px; }
-.exercise-check-list { display:grid; gap:9px; margin-top:16px; }
-.exercise-check-list > div { display:grid; grid-template-columns:44px minmax(0,1fr); gap:8px; align-items:start; padding-top:9px; border-top:1px solid #ffffff0d; font-size:10px; }
-.exercise-check-list code { overflow-wrap:anywhere; color:#b9b9cb; }
-@media(max-width:1150px) { .exercise-studio-canvas-layout { min-height:auto; } .exercise-blueprint-canvas { height:560px; } }
-@media(max-width:700px) { .exercise-blueprint-canvas { height:500px; } .exercise-logic-block { width:220px; } }
 
 /* Simulation experience: packet strip, suite grid, loop badges, breakpoints, code sync. */
 .packet-strip { display:flex; flex-wrap:wrap; align-items:center; gap:10px 14px; padding:12px 18px; border-bottom:1px solid #ffffff0c; background:#0f1220a0; }

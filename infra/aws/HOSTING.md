@@ -6,11 +6,10 @@ The host is one Ubuntu 24.04 `t3.small`, with 20 GB encrypted gp3 storage, 2 GB 
 
 ## Initial setup
 
-Attach `ec2-deployment-iam.json` as an additional inline policy named `SocrasticaEC2Deployment` on `socrastica-deployer`. Keep existing PowerUserAccess and SocrasticaDeploymentIAM. The extra policy allows only the project instance profile and passing the web role to EC2. The web role remains constrained by SocrasticaRuntimeBoundary and the narrower `web-role-policy.json`.
+The host needs no IAM role: code checks run inside the application and nothing calls AWS at runtime.
 
 ```powershell
 node scripts/provision-web.cjs
-node scripts/provision-web.cjs --attach-role
 node scripts/deploy-web.cjs
 node scripts/configure-production-auth.cjs
 ```
@@ -19,7 +18,7 @@ The provisioner reuses the tagged project instance and Elastic IP. Do not run it
 
 The host bootstraps Node 22 from the official archive with SHA-256 verification, Caddy, Git, bounded journals, and swap. Initial cloud-init completion takes a few minutes. The app is a separate unprivileged systemd service listening only on `127.0.0.1:3000`. SSH is allowed only from the deployment operator's IP; ports 80/443 are public. If your IP changes, replace the security group's existing SSH /32 rule with the new /32 before connecting. Never open SSH to the whole internet.
 
-Application secrets are transferred over SSH into `/etc/socrastica/app.env` with `root:socrastica` ownership and mode 640. Only required app variables are transferred. The host does not receive the local AWS profile, AWS access keys, Supabase management token, or SMTP/Resend credentials. AWS execution access comes from its limited EC2 role. Auth emails continue through Supabase's configured Resend SMTP.
+Application secrets are transferred over SSH into `/etc/socrastica/app.env` with `root:socrastica` ownership and mode 640. Only required app variables are transferred. The host does not receive the local AWS profile, AWS access keys, Supabase management token, or SMTP/Resend credentials. Auth emails continue through Supabase's configured Resend SMTP.
 
 ## Cloudflare and HTTPS
 

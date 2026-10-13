@@ -4,7 +4,7 @@ const files = [
  'scripts/next-production.cjs','supabase/migrations/202610010001_learning.sql','supabase/migrations/202610020001_execution.sql','supabase/migrations/202610030001_reasoning.sql',
  'scripts/email-templates.cjs','scripts/configure-auth-email.cjs',
  'infra/aws/runtime-boundary.json','infra/aws/deployer-iam.json',
- 'src/lib/values.ts','src/lib/sandbox.ts','src/lib/ai-config.ts',
+ 'src/lib/values.ts','src/lib/sandbox.ts','src/lib/ai-config.ts','supabase/migrations/202610090001_sharing.sql','src/app/api/share/route.ts','src/app/share/[token]/page.tsx','src/components/SharedBlueprint.tsx','src/components/ShareList.tsx','src/app/progress/page.tsx','src/components/PacketStrip.tsx','src/components/SuiteGrid.tsx',
  'supabase/migrations/202610040001_blueprint.sql','supabase/migrations/202610070001_retire_legacy.sql','supabase/migrations/202610080001_challenges.sql',
  'src/lib/blueprint.ts','src/lib/challenges.ts','src/lib/blueprint-code.ts','src/lib/studio-ai.ts','src/lib/studio-server.ts','src/lib/use-blueprint-studio.ts','src/components/BlueprintCanvas.tsx','src/components/VoiceDirector.tsx','src/components/StudioWorkspace.tsx',
  'src/app/api/studio/[challenge]/route.ts','src/app/api/studio/[challenge]/direct/route.ts','src/app/api/studio/[challenge]/generate/route.ts','src/app/api/studio/[challenge]/run/route.ts','src/app/api/studio/[challenge]/history/route.ts',
@@ -15,7 +15,7 @@ const files = [
  'src/components/AuthForm.tsx','src/app/login/page.tsx','src/app/signup/page.tsx','src/app/forgot-password/page.tsx','src/app/reset-password/page.tsx','src/app/auth/callback/route.ts',
  'src/components/CodeWorkspace.tsx','src/app/studio/page.tsx','src/app/page.tsx',
 ];
-const parts = ['# Socrastica — complete copy-ready source', 'Install dependencies, configure `.env.local` from the blank `.env.example`, apply the database migration, and run `npm run dev`. Landing page: `/`. Protected studio: `/studio`. See README.md and BACKEND_SETUP.md for completed integrations and remaining services.'];
+const parts = ['# Socrastica — complete copy-ready source', 'Install dependencies, configure `.env.local` from the blank `.env.example`, apply the database migration, and run `npm run dev`. Landing page: `/`. Activities: `/exercises` and `/learn/<id>`. See README.md and BACKEND_SETUP.md for completed integrations and remaining services.'];
 for (const file of files) {
  const ext = file.split('.').pop(); const lang = file.endsWith('/Dockerfile') ? 'dockerfile' : file.endsWith('.env.example') ? 'dotenv' : ext==='json' ? 'json' : ext==='css' ? 'css' : ext==='sql' ? 'sql' : ['cjs','mjs'].includes(ext) ? 'js' : 'tsx';
  parts.push(`## ${file}`, '```'+lang+'\n'+fs.readFileSync(file,'utf8')+'\n```');

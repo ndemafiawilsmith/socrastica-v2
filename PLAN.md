@@ -47,6 +47,6 @@ Started October 13, 2026. Each item becomes its own commit on `main`. Boxes are 
 
 ## Phase 5: verification, docs, release
 
-- [ ] 5.1 Update and extend the test scripts for the new engine, routes, guest mode, and sharing. Typecheck, build, and run every script.
-- [ ] 5.2 Update README, STUDIO.md, EXERCISES.md, BACKEND_SETUP.md, and the source export list.
+- [x] 5.1 Update and extend the test scripts for the new engine, routes, guest mode, and sharing. Typecheck, build, and run every script.
+- [x] 5.2 Update README, STUDIO.md, EXERCISES.md, BACKEND_SETUP.md, and the source export list.
 - [ ] 5.3 Push to GitHub and deploy with the release helper, after your go-ahead.
