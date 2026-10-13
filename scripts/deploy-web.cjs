@@ -12,7 +12,7 @@ function ssh(command,input){
 if(process.argv.includes('--status')){ssh('sudo test -f /var/lib/socrastica-bootstrap-ready && node --version && sudo systemctl is-active socrastica caddy');process.exit(0);}
 if(process.argv.includes('--update')){ssh('sudo /usr/local/bin/socrastica-deploy');process.exit(0);}
 ssh('sudo test -f /var/lib/socrastica-bootstrap-ready');
-const required=['OPENAI_API_KEY','OPENAI_MODEL','NEXT_PUBLIC_SUPABASE_URL','NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY','SUPABASE_SECRET_KEY','AWS_REGION','AWS_EXECUTION_BUCKET','AWS_ECS_CLUSTER','AWS_RUNNER_TASK_DEFINITION','AWS_RUNNER_SUBNET','AWS_RUNNER_SECURITY_GROUP'];
+const required=['OPENAI_API_KEY','OPENAI_MODEL','NEXT_PUBLIC_SUPABASE_URL','NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY','SUPABASE_SECRET_KEY'];
 const env={NEXT_PUBLIC_APP_URL:'https://socrastica.com'};
 for(const name of required){
  const value=process.env[name];
@@ -20,7 +20,7 @@ for(const name of required){
  env[name]=value;
 }
 // Send only application variables through SSH stdin. No SMTP/Resend, management
-// tokens, local AWS profiles, or developer credentials belong on this host.
+// tokens, AWS credentials, or developer credentials belong on this host.
 ssh("sudo bash -c 'umask 0077; cat > /etc/socrastica/app.env; chown root:socrastica /etc/socrastica/app.env; chmod 640 /etc/socrastica/app.env'",Object.entries(env).map(([key,value])=>`${key}=${JSON.stringify(value)}`).join('\n')+'\n');
 for(const [source,destination,mode] of [['infra/aws/socrastica.service','/etc/systemd/system/socrastica.service','644'],['infra/aws/deploy-web.sh','/usr/local/bin/socrastica-deploy','755']]){
  ssh(`sudo install -m ${mode} /dev/stdin ${destination}`,fs.readFileSync(source,'utf8').replaceAll('\r\n','\n'));

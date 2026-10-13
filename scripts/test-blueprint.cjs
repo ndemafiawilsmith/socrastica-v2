@@ -1,11 +1,7 @@
-const fs=require('node:fs'),path=require('node:path'),assert=require('node:assert/strict'),Module=require('node:module'),ts=require('typescript');
-function load(file,dependencies={}){
- const module=new Module(path.resolve(file));module.filename=path.resolve(file);module.paths=Module._nodeModulePaths(process.cwd());const native=module.require.bind(module);module.require=name=>name==='server-only'?{}:dependencies[name]||native(name);
- module._compile(ts.transpileModule(fs.readFileSync(file,'utf8'),{compilerOptions:{module:ts.ModuleKind.CommonJS,target:ts.ScriptTarget.ES2022,esModuleInterop:true}}).outputText,module.filename);return module.exports;
-}
+const fs=require('node:fs'),assert=require('node:assert/strict'),{load}=require('./load-ts.cjs');
 const blueprint=load('src/lib/blueprint.ts');
-const guidance=load('src/lib/guidance.ts',{'./blueprint':blueprint});
-const codeModule=load('src/lib/blueprint-code.ts',{'./blueprint':blueprint});
+const guidance=load('src/lib/guidance.ts');
+const codeModule=load('src/lib/blueprint-code.ts');
 const graph={nodes:[
  {id:'input',op:'start',label:'Receive numbers',x:160,y:40},
  {id:'memory',op:'initSet',label:'Create a seen set',x:160,y:155},

@@ -1,6 +1,5 @@
-const assert=require('node:assert/strict'),fs=require('node:fs'),path=require('node:path'),Module=require('node:module'),ts=require('typescript'),{randomUUID}=require('node:crypto');
-function load(file,dependencies={}){const module=new Module(path.resolve(file));module.filename=path.resolve(file);module.paths=Module._nodeModulePaths(process.cwd());const native=module.require.bind(module);module.require=name=>name==='server-only'?{}:dependencies[name]||native(name);module._compile(ts.transpileModule(fs.readFileSync(file,'utf8'),{compilerOptions:{module:ts.ModuleKind.CommonJS,target:ts.ScriptTarget.ES2022,esModuleInterop:true}}).outputText,module.filename);return module.exports;}
-const exercises=load('src/lib/exercises.ts'),runner=load('src/lib/exercise-runner.ts',{'./exercises':exercises}),destinations=load('src/lib/auth-destination.ts',{'./exercises':exercises});
+const assert=require('node:assert/strict'),fs=require('node:fs'),{randomUUID}=require('node:crypto'),{load}=require('./load-ts.cjs');
+const exercises=load('src/lib/exercises.ts'),runner=load('src/lib/exercise-runner.ts'),destinations=load('src/lib/auth-destination.ts');
 const expected={'naira-to-dollar':3,'dollar-to-naira':4500,'discount-price':4000,'tip-total':2200,'celsius-fahrenheit':77,'fahrenheit-celsius':25,'minutes-seconds':150,'rectangle-area':12,'rectangle-perimeter':14,'even-number':false,'positive-number':false,'sum-list':10,'average-list':20,'count-even':3,'largest-number':12,'smallest-number':3,'sort-list':[2,5,10],'reverse-text':'olleh','palindrome':true,'text-length':6};
 async function main(){
  assert.equal(new Set(exercises.exercises.map(e=>e.id)).size,20);
@@ -10,7 +9,7 @@ async function main(){
  assert.match(exercises.runPlan([{op:'divide',amount:0}],10).error,/zero/);assert.match(exercises.runPlan([{op:'sum'}],10).error,/list/);
  assert.ok(exercises.checkPlan(currency,[{op:'multiply',amount:1500}]).some(test=>!test.passed));
  assert.ok(!exercises.planSchema.safeParse(Array.from({length:13},()=>({op:'add',amount:1}))).success);assert.ok(!exercises.planSchema.safeParse([{op:'eval',amount:1}]).success);
- await assert.rejects(runner.testExerciseCode('function solve(){while(true){}}',currency,currency.solution));await assert.rejects(runner.testExerciseCode('function solve(){return process.env.SECRET}',currency,currency.solution));await assert.rejects(runner.testExerciseCode('import fs from "fs"; function solve(){return 0}',currency,currency.solution));
+ assert.ok((await runner.testExerciseCode('function solve(){while(true){}}',currency,currency.solution)).every(test=>!test.passed&&test.actual===null),'Infinite loops stop at the time limit');assert.ok((await runner.testExerciseCode('function solve(){return process.env.SECRET}',currency,currency.solution)).every(test=>!test.passed&&test.actual===null),'No host process access');await assert.rejects(runner.testExerciseCode('import fs from "fs"; function solve(){return 0}',currency,currency.solution));
  assert.equal(destinations.authDestination('//evil.example'),'/exercises');assert.equal(destinations.authDestination('/learn/naira-to-dollar'),'/learn/naira-to-dollar');assert.equal(destinations.authDestination('/learn/unknown'),'/exercises');
  console.log('PASS 20 exercise answers, edge cases, plan interpretation, generated code, isolation, limits and safe auth destinations');
  if(process.argv.includes('--integration'))await integration(currency);

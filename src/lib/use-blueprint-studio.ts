@@ -78,8 +78,14 @@ export function useBlueprintStudio(){
       }}}finally{reader.releaseLock();}if(!finished)throw new Error('The draft was interrupted. Reload to check whether it was saved.');await refreshHistory().catch(()=>setEvidenceError('Draft saved. Journal could not refresh.'));
     }catch(error){if(mounted.current){setError(error instanceof Error?error.message:'The draft could not be completed.');setPreviewCode('');setPhase('');}}finally{busyRef.current=false;if(mounted.current)setBusy(false);}
   }
+  async function runTests(){
+    if(busyRef.current)throw new Error('The studio is busy. Try again in a moment.');busyRef.current=true;setBusy(true);setError('');
+    try{
+      await save();const response=await fetch('/api/studio/run',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({revision:revision.current})});const data=await response.json();if(!response.ok)throw new Error(data.error||'Code could not run.');return data;
+    }finally{busyRef.current=false;if(mounted.current)setBusy(false);}
+  }
   async function joinClass(code:string,name:string){if(busyRef.current)return;busyRef.current=true;setBusy(true);try{await save();const response=await fetch('/api/classrooms/join',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({code,name})});const data=await response.json();if(!response.ok)throw new Error(data.error);await load();await refreshHistory();}finally{busyRef.current=false;setBusy(false);}}
   async function leaveClass(){if(busyRef.current)return;busyRef.current=true;setBusy(true);try{await save();const response=await fetch('/api/classrooms/join',{method:'DELETE'});const data=await response.json();if(!response.ok)throw new Error(data.error);await load();}finally{busyRef.current=false;setBusy(false);}}
   async function signOut(){try{if(busyRef.current)return;await save();const {error}=await browserClient().auth.signOut();if(error)throw error;window.location.assign('/login');}catch{setError('Save your canvas and try signing out again.');}}
-  return {...document,ready,error,setError,saveStatus,busy,phase,previewCode,focusNode,focusToken,focusOn,edit,save,direct,generate,signOut,preview,discardPreview:()=>setPreview(null),suggest,applyPreview,showVoicePreview,undo,redo,canUndo:undoStack.current.length>0,canRedo:redoStack.current.length>0,events,refreshHistory,recordActivity,evidenceBusy,evidenceError,joinClass,leaveClass,reload:load};
+  return {...document,ready,error,setError,saveStatus,busy,phase,previewCode,focusNode,focusToken,focusOn,edit,save,direct,generate,runTests,signOut,preview,discardPreview:()=>setPreview(null),suggest,applyPreview,showVoicePreview,undo,redo,canUndo:undoStack.current.length>0,canRedo:redoStack.current.length>0,events,refreshHistory,recordActivity,evidenceBusy,evidenceError,joinClass,leaveClass,reload:load};
 }

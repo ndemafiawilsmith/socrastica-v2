@@ -3,8 +3,7 @@ const path=require('node:path');
 const {spawnSync}=require('node:child_process');
 const {fromIni}=require('@aws-sdk/credential-providers');
 const {STSClient,GetCallerIdentityCommand}=require('@aws-sdk/client-sts');
-const {EC2Client,DescribeInstancesCommand,DescribeVpcsCommand,DescribeSubnetsCommand,DescribeRouteTablesCommand,DescribeImagesCommand,DescribeSecurityGroupsCommand,CreateSecurityGroupCommand,AuthorizeSecurityGroupIngressCommand,DescribeKeyPairsCommand,ImportKeyPairCommand,RunInstancesCommand,DescribeAddressesCommand,AllocateAddressCommand,AssociateAddressCommand,AssociateIamInstanceProfileCommand}=require('@aws-sdk/client-ec2');
-const {IAMClient,GetRoleCommand,CreateRoleCommand,PutRolePolicyCommand,GetInstanceProfileCommand,CreateInstanceProfileCommand,AddRoleToInstanceProfileCommand}=require('@aws-sdk/client-iam');
+const {EC2Client,DescribeInstancesCommand,DescribeVpcsCommand,DescribeSubnetsCommand,DescribeRouteTablesCommand,DescribeImagesCommand,DescribeSecurityGroupsCommand,CreateSecurityGroupCommand,AuthorizeSecurityGroupIngressCommand,DescribeKeyPairsCommand,ImportKeyPairCommand,RunInstancesCommand,DescribeAddressesCommand,AllocateAddressCommand,AssociateAddressCommand}=require('@aws-sdk/client-ec2');
 const options={region:'us-east-1',credentials:fromIni({profile:'socrastica'})};
 const account='954633149655', name='socrastica-web';
 const tags=[{Key:'Name',Value:name},{Key:'Project',Value:'Socrastica'}];
@@ -12,19 +11,8 @@ const inventory='infra/aws/hosting-resources.json';
 async function main(){
  const identity=await new STSClient(options).send(new GetCallerIdentityCommand({}));
  if(identity.Account!==account)throw new Error('WRONG_AWS_ACCOUNT');
- const ec2=new EC2Client(options),iam=new IAMClient(options);
- if(process.argv.includes('--attach-role')){
-  const saved=JSON.parse(fs.readFileSync(inventory,'utf8'));
-  const trust={Version:'2012-10-17',Statement:[{Effect:'Allow',Principal:{Service:'ec2.amazonaws.com'},Action:'sts:AssumeRole'}]};
-  try{await iam.send(new GetRoleCommand({RoleName:name}));}catch(error){if(error.name!=='NoSuchEntityException')throw error;await iam.send(new CreateRoleCommand({RoleName:name,AssumeRolePolicyDocument:JSON.stringify(trust),PermissionsBoundary:`arn:aws:iam::${account}:policy/SocrasticaRuntimeBoundary`,Tags:tags}));}
-  await iam.send(new PutRolePolicyCommand({RoleName:name,PolicyName:'SocrasticaWebExecution',PolicyDocument:fs.readFileSync('infra/aws/web-role-policy.json','utf8')}));
-  let profile;
-  try{profile=(await iam.send(new GetInstanceProfileCommand({InstanceProfileName:name}))).InstanceProfile;}catch(error){if(error.name!=='NoSuchEntityException')throw error;profile=(await iam.send(new CreateInstanceProfileCommand({InstanceProfileName:name}))).InstanceProfile;}
-  if(!profile.Roles?.some(role=>role.RoleName===name))await iam.send(new AddRoleToInstanceProfileCommand({InstanceProfileName:name,RoleName:name}));
-  const host=(await ec2.send(new DescribeInstancesCommand({InstanceIds:[saved.instanceId]}))).Reservations[0].Instances[0];
-  if(!host.IamInstanceProfile)await ec2.send(new AssociateIamInstanceProfileCommand({InstanceId:saved.instanceId,IamInstanceProfile:{Name:name}}));
-  console.log('Limited EC2 application role configured and attached. No developer credentials copied.');return;
- }
+ // The web host needs no AWS role: code checks run in-process and nothing calls AWS at runtime.
+ const ec2=new EC2Client(options);
  const ip=(await(await fetch('https://api.ipify.org')).text()).trim();
  if(!/^\d{1,3}(\.\d{1,3}){3}$/.test(ip))throw new Error('Invalid operator IP');
  const vpc=(await ec2.send(new DescribeVpcsCommand({Filters:[{Name:'is-default',Values:['true']}]}))).Vpcs[0]?.VpcId;

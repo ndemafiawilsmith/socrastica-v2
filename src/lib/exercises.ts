@@ -1,5 +1,6 @@
 import { z } from 'zod';
-export type Value = number | string | boolean | number[];
+import { sameValue, type Value } from './values';
+export { sameValue, type Value };
 export const operations = {
   multiply: ['Multiply', 'Scale a number by a factor.', true], divide: ['Divide', 'Split a number into equal parts.', true],
   add: ['Add', 'Increase a number by an amount.', true], subtract: ['Subtract', 'Take an amount away.', true],
@@ -92,7 +93,6 @@ export function runPlan(plan:Plan,input:Input){
   }
   return {frames,result:value,error:null,failedStep:null};
 }
-export function sameValue(a:Value,b:Value):boolean {return typeof a==='number'&&typeof b==='number'?Math.abs(a-b)<=1e-9*Math.max(1,Math.abs(b)):JSON.stringify(a)===JSON.stringify(b);}
 export function checkPlan(exercise:Exercise,plan:Plan){return exercise.cases.map(input=>{const trace=runPlan(plan,input),expected=runPlan(exercise.solution,input).result;return {input,expected,actual:trace.result,passed:plan.length>0&&!trace.error&&sameValue(trace.result,expected),error:trace.error};});}
 export const planKey=(plan:Plan)=>JSON.stringify(plan);
 export function codeForPlan(plan:Plan){
