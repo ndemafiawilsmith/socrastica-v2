@@ -4,14 +4,26 @@ import dynamic from "next/dynamic";
 import { useEffect, useRef, useState } from "react";
 import { Braces, Play, LoaderCircle, Info } from "lucide-react";
 import { type Verification } from "@/lib/mentor";
+import type { editor } from 'monaco-editor';
 
 const Editor = dynamic(() => import("@monaco-editor/react"), { ssr: false });
-export default function CodeWorkspace({ code, onChange }: { code: string; onChange: (code: string) => void }) {
+export default function CodeWorkspace({ code, onChange, drafting=false, blueprintReady=true, selectedNodeId, selectedNodeLabel }: { code: string; onChange: (code: string) => void; drafting?:boolean; blueprintReady?:boolean;selectedNodeId?:string|null;selectedNodeLabel?:string }) {
+  const editorRef=useRef<editor.IStandaloneCodeEditor|null>(null),decorations=useRef<editor.IEditorDecorationsCollection|null>(null);
+  const [editorReady,setEditorReady]=useState(false);
+  const lines=code.split('\n'), marker=selectedNodeId?lines.findIndex(line=>line.trim()===`// node: ${selectedNodeId}`):-1;
+  useEffect(()=>{
+    decorations.current?.clear();if(!editorRef.current||marker<0)return;
+    let end=lines.findIndex((line,index)=>index>marker&&line.trim().startsWith('// node: '));if(end<0)end=lines.length;
+    decorations.current=editorRef.current.createDecorationsCollection([{range:{startLineNumber:marker+1,startColumn:1,endLineNumber:end,endColumn:1},options:{isWholeLine:true,className:'blueprint-code-focus'}}]);
+    editorRef.current.revealLineInCenter(marker+1);
+  },[code,selectedNodeId,editorReady]);
   const [busy, setBusy] = useState(false);
   const [result, setResult] = useState<Verification | null>(null);
   const [error, setError] = useState("");
   const mounted = useRef(true);
   const controller = useRef<AbortController | null>(null);
+  const currentCode = useRef(code); currentCode.current = code;
+  useEffect(() => { setResult(null); setError(""); controller.current?.abort(); }, [code]);
   useEffect(() => { mounted.current = true; return () => { mounted.current = false; controller.current?.abort(); }; }, []);
   async function verify() {
     setBusy(true); setError(""); setResult(null);
@@ -28,7 +40,7 @@ export default function CodeWorkspace({ code, onChange }: { code: string; onChan
         const response = await fetch(`/api/execute?id=${encodeURIComponent(job.id)}`,{signal:abort.signal,cache:'no-store'});
         const data = await response.json();
         if(!response.ok) throw new Error(data.error || 'Unable to retrieve results.');
-        if(data.status==='completed') { if(mounted.current) setResult(data.result); return; }
+        if(data.status==='completed') { if(mounted.current && currentCode.current===submittedCode) setResult(data.result); return; }
         if(data.status==='failed') throw new Error('Execution could not finish. Check for syntax or runtime errors, then try again.');
       }
       throw new Error('Execution timed out. Please retry shortly.');
@@ -38,8 +50,9 @@ export default function CodeWorkspace({ code, onChange }: { code: string; onChan
   return <section className="panel" aria-label="Code workspace">
     <div className="panel-title"><Braces size={16} className="text-iris"/> Bring your logic to life <span className="ml-auto font-mono text-[10px] text-mist">TypeScript</span></div>
     <div className="border-b border-white/[0.07] bg-black/15 px-5 py-3 font-mono text-xs text-iris">containsDuplicate.ts</div>
-    <Editor height="320px" language="typescript" value={code} onChange={value => { onChange(value ?? ""); setResult(null); }} theme="socrastica" loading={<p className="p-8 text-sm text-mist">Loading editor…</p>} beforeMount={monaco => monaco.editor.defineTheme("socrastica", { base: "vs-dark", inherit: true, rules: [{ token: "comment", foreground: "747b98" }, { token: "keyword", foreground: "B5A3FF" }], colors: { "editor.background": "#111320", "editor.foreground": "#D9DCEF", "editorLineNumber.foreground": "#555B76", "editor.selectionBackground": "#B5A3FF30", "editor.lineHighlightBackground": "#FFFFFF04" } })} options={{ readOnly:busy, minimap: { enabled: false }, fontSize: 13, lineHeight: 24, padding: { top: 20 }, scrollBeyondLastLine: false, automaticLayout: true, tabSize: 2, wordWrap: "on", ariaLabel: "TypeScript code editor" }}/>
-    <div className="flex flex-wrap items-center justify-between gap-3 border-t border-white/10 p-4"><span className="flex items-center gap-2 text-[11px] text-mist"><Info size={13}/>{busy ? 'Starting your runner and testing… This can take a minute.' : '8 tests · standalone TypeScript · no imports or network'}</span><button className="primary" onClick={verify} disabled={busy || !code.trim()}>{busy ? <LoaderCircle size={14} className="animate-spin"/> : <Play size={14}/>} {busy ? "Running…" : "Run tests"}</button></div>
+    {selectedNodeId&&<p className="px-5 py-3 text-xs text-mist">{marker>=0?`Highlighted code for “${selectedNodeLabel||selectedNodeId}”.`:'Select a block to explore its job. This older draft has no block markers; new drafts include them.'}</p>}
+    <Editor onMount={instance=>{editorRef.current=instance;setEditorReady(true);}} height="320px" language="typescript" value={code} onChange={value => { onChange(value ?? ""); setResult(null); }} theme="socrastica" loading={<p className="p-8 text-sm text-mist">Loading editor…</p>} beforeMount={monaco => monaco.editor.defineTheme("socrastica", { base: "vs-dark", inherit: true, rules: [{ token: "comment", foreground: "747b98" }, { token: "keyword", foreground: "B5A3FF" }], colors: { "editor.background": "#111320", "editor.foreground": "#D9DCEF", "editorLineNumber.foreground": "#555B76", "editor.selectionBackground": "#B5A3FF30", "editor.lineHighlightBackground": "#FFFFFF04" } })} options={{ readOnly:busy||drafting, minimap: { enabled: false }, fontSize: 13, lineHeight: 24, padding: { top: 20 }, scrollBeyondLastLine: false, automaticLayout: true, tabSize: 2, wordWrap: "on", ariaLabel: "TypeScript code editor" }}/>
+    <div className="flex flex-wrap items-center justify-between gap-3 border-t border-white/10 p-4"><span className="flex items-center gap-2 text-[11px] text-mist"><Info size={13}/>{busy ? 'Starting your runner and testing… This can take a minute.' : '8 tests · standalone TypeScript · no imports or network'}</span><button className="primary" onClick={verify} disabled={busy || drafting || !blueprintReady || !code.trim()}>{busy ? <LoaderCircle size={14} className="animate-spin"/> : <Play size={14}/>} {busy ? "Running…" : "Run tests"}</button></div>
     {error && <p role="alert" className="px-5 pb-5 text-sm text-rose-300">{error}</p>}
     {result && <div role="status" className="mx-4 mb-4 rounded-xl border border-iris/20 bg-iris/5 p-4 text-sm"><p className="mb-3 text-iris">{result.summary}</p><ul className="space-y-2 text-xs text-mist">{result.checks.map(check => <li key={check}>{check}</li>)}</ul></div>}
   </section>;

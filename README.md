@@ -9,18 +9,20 @@ npm install
 npm run dev
 ```
 
-Open http://localhost:3000. Sign in or create an account to enter `/studio`.
+Open http://localhost:3000. Browse `/exercises`, then sign in to save your work. New sign-ins open the library; links preserve the chosen activity.
 
 ## Available now
 
 - Email/password sign-up and sign-in, sign-out, confirmation callback, and password reset screens.
 - Server-verified sessions, cookie refresh, and a protected learning studio.
-- Supabase-backed code drafts, conversation history, and learning stage, with autosave and manual retry.
-- A live Socratic mentor using `gpt-6-luna` through a server-side OpenAI endpoint.
-- Shared budget reservations, daily per-user limits, input limits, origin checks, and row-level account isolation.
-- Mentor readiness assessment, automatic advancement into Map, saved architecture generated from the learner's approach, and a Monaco TypeScript workspace.
+- Supabase-backed editable blueprints and code drafts with autosave and revision conflict protection.
+- Voice or text direction using the existing budgeted model, with short canvas nudges and optional spoken playback.
+- Draggable typed logic blocks, editable connections, animated packet simulation, visible memory, and failing-node highlights.
+- Streamed AI TypeScript drafting after a blueprint passes 40 checks. Drafts are checked independently in isolated QuickJS before saving.
 
-The current challenge is duplicate detection. The mentor asks for missing reasoning, then automatically advances to a personalized logic map once the approach is complete. Graphs use validated JSON and server-controlled Mermaid syntax. Notes, map, and readiness persist across reloads; stale progress saves cannot undo the mentor's advancement. The code workspace submits TypeScript to isolated ECS Fargate tasks and displays eight actual test results. Student code runs in QuickJS/WebAssembly without Node APIs, filesystem, network, imports, or cloud credentials. Passing tests does not prove flowchart equivalence or runtime complexity.
+The public `/exercises` library now has 21 activities, including currency conversion, percentages, units, geometry, lists, and text. See [EXERCISES.md](EXERCISES.md) for the new ordered-plan workspaces. The branching `/studio` activity is duplicate detection. Learners direct or connect start, memory, loop, membership, add, and return blocks. Simulation interprets the exact operations and connections locally, without AI calls. Passing finite tests is evidence, not a guarantee for all inputs. Monaco also supports the existing ECS Fargate runner and its eight reviewed tests.
+
+Voice uses the browser SpeechRecognition API in supported secure-context browsers. Recognition may be processed remotely by the browser provider; only the transcript goes to the drafter. Concepts appear immediately, then a pause or Send creates a reviewable AI proposal. Students choose Apply or Keep my canvas. Text remains available everywhere. Optional spoken nudges use browser speech synthesis; no paid audio model is used.
 
 ## Configuration
 
@@ -43,6 +45,9 @@ npm run typecheck
 npm run build
 npm run start
 npm run test:integration
+npm run test:blueprint
+npm run test:studio
+npm run test:exercises
 npm run usage:status
 npm run test:runner
 npm run test:execution
@@ -61,3 +66,9 @@ The execution migration is `node scripts/migrate.cjs 202610020001_execution.sql`
 See `infra/aws/README.md` for AWS bootstrap and `infra/aws/HOSTING.md` for EC2 deployment and GitHub updates. Local calls use the `socrastica` profile in account `954633149655`; never use the unrelated default profile. Production omits AWS_PROFILE and uses a narrowly scoped application role. The website, HTTPS domain, required application environment, and production auth callbacks are configured. Hosted code execution awaits the additional EC2 instance-profile permission and verification described in BACKEND_SETUP.md.
 
 `SOURCE.md` contains the ordered copy-ready configuration and app source. Monaco uses its default external loader; self-host workers/assets for deployments requiring an offline editor or a strict CSP. Next/font downloads Geist during a build.
+
+The canvas migration is `node scripts/migrate.cjs 202610040001_blueprint.sql`. `npm run test:studio -- --live` adds two paid calls for AI direction and streamed drafting; ordinary studio tests do not call OpenAI. Both legacy mentor and studio endpoints share the same existing AI allowance; this upgrade does not reset it.
+
+The Learning guide adds concrete repair previews, plain-language block explanations, memory demonstrations, branch predictions, rewind/scrubbing, Undo/Redo, saved reflections, and version comparison. New generated code includes canvas node markers. `/instructor` provides private classes, consent-based sharing, evidence review, guidance settings, drafting controls, and manual rubric feedback. Apply `202610050001_teaching.sql` after the canvas migration; run `npm run test:teaching` against a running local server. See [STUDIO.md](STUDIO.md) for sharing boundaries and limitations.
+
+Apply `202610060001_exercises.sql` for separate exercise progress, transactional saves, and isolated-run quotas. Run `node scripts/test-exercises.cjs --integration` against the local server; `--live` adds one budgeted currency draft. The landing page uses a short introduction, a playable number example, and links to the exercise library. No new release has been deployed to AWS by these local changes.

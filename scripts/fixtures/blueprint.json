@@ -1,0 +1,97 @@
+{
+  "nodes": [
+    {
+      "id": "input",
+      "op": "start",
+      "label": "Receive numbers",
+      "x": 160,
+      "y": 40
+    },
+    {
+      "id": "memory",
+      "op": "initSet",
+      "label": "Create a seen set",
+      "x": 160,
+      "y": 155
+    },
+    {
+      "id": "loop",
+      "op": "loop",
+      "label": "Take the next number",
+      "x": 160,
+      "y": 270
+    },
+    {
+      "id": "check",
+      "op": "has",
+      "label": "Seen this number before?",
+      "x": 160,
+      "y": 390
+    },
+    {
+      "id": "remember",
+      "op": "add",
+      "label": "Remember the number",
+      "x": 160,
+      "y": 520
+    },
+    {
+      "id": "yes",
+      "op": "returnTrue",
+      "label": "Found a duplicate",
+      "x": 500,
+      "y": 510
+    },
+    {
+      "id": "no",
+      "op": "returnFalse",
+      "label": "No duplicates",
+      "x": 500,
+      "y": 270
+    }
+  ],
+  "edges": [
+    {
+      "id": "a",
+      "source": "input",
+      "target": "memory",
+      "port": "next"
+    },
+    {
+      "id": "b",
+      "source": "memory",
+      "target": "loop",
+      "port": "next"
+    },
+    {
+      "id": "c",
+      "source": "loop",
+      "target": "check",
+      "port": "yes"
+    },
+    {
+      "id": "d",
+      "source": "loop",
+      "target": "no",
+      "port": "no"
+    },
+    {
+      "id": "e",
+      "source": "check",
+      "target": "yes",
+      "port": "yes"
+    },
+    {
+      "id": "f",
+      "source": "check",
+      "target": "remember",
+      "port": "no"
+    },
+    {
+      "id": "g",
+      "source": "remember",
+      "target": "loop",
+      "port": "next"
+    }
+  ]
+}

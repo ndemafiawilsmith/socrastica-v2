@@ -3,15 +3,17 @@ import { useEffect, useState } from 'react';
 import Link from 'next/link';
 import { ArrowRight, LoaderCircle } from 'lucide-react';
 import Logo from '@/components/Logo';
+import { authDestination } from '@/lib/auth-destination';
 import { browserClient } from '@/lib/supabase/browser';
 
 type Mode = 'login' | 'signup' | 'forgot' | 'reset';
 const titles: Record<Mode, string> = { login: 'Welcome back, thinker.', signup: 'Your next idea starts here.', forgot: 'Let’s get you back in.', reset: 'A fresh start.' };
 export default function AuthForm({ mode }: { mode: Mode }) {
+  const [destination,setDestination]=useState('/exercises');
   const [busy, setBusy] = useState(false);
   const [message, setMessage] = useState('');
   const [error, setError] = useState('');
-  useEffect(() => { if (new URLSearchParams(window.location.search).has('error')) setError('That confirmation link is invalid or expired. Try signing in or request a new password reset.'); }, []);
+  useEffect(() => { setDestination(authDestination(new URLSearchParams(window.location.search).get('next')));if (new URLSearchParams(window.location.search).has('error')) setError('That confirmation link is invalid or expired. Try signing in or request a new password reset.'); }, []);
   async function submit(event: React.FormEvent<HTMLFormElement>) {
     event.preventDefault(); setBusy(true); setError(''); setMessage('');
     const form = new FormData(event.currentTarget);
@@ -19,18 +21,18 @@ export default function AuthForm({ mode }: { mode: Mode }) {
     const password = String(form.get('password') || '');
     try {
       const supabase = browserClient();
-      const callback = `${window.location.origin}/auth/callback`;
+      const callback = `${window.location.origin}/auth/callback?next=${encodeURIComponent(destination)}`;
       if (mode === 'login') {
         const { error } = await supabase.auth.signInWithPassword({ email, password });
         if (error) throw new Error('Sign-in failed. Check your email, password, and email confirmation.');
-        window.location.assign('/studio');
+        window.location.assign(destination);
       } else if (mode === 'signup') {
         const { data, error } = await supabase.auth.signUp({ email, password, options: { emailRedirectTo: callback } });
         if (error) throw new Error('Could not create your account. Try again shortly or sign in if you already have one.');
-        if (data.session) window.location.assign('/studio');
+        if (data.session) window.location.assign(destination);
         else setMessage('Check your email for a confirmation link. If you already have an account, sign in or reset your password.');
       } else if (mode === 'forgot') {
-        const { error } = await supabase.auth.resetPasswordForEmail(email, { redirectTo: `${callback}?next=/reset-password` });
+        const { error } = await supabase.auth.resetPasswordForEmail(email, { redirectTo: `${window.location.origin}/auth/callback?next=/reset-password` });
         if (error) throw new Error('Could not send the reset email. Please try again shortly.');
         setMessage('If an account exists for that address, you’ll receive a password reset email.');
       } else {
@@ -51,5 +53,5 @@ export default function AuthForm({ mode }: { mode: Mode }) {
     {mode === 'reset' && <label className="block text-xs text-mist">Confirm password<input className="mt-2 w-full rounded-xl border border-white/15 bg-black/20 p-3 text-sm text-white" name="confirm" type="password" autoComplete="new-password" required minLength={10} maxLength={128}/></label>}
     {error && <p role="alert" className="text-sm leading-6 text-rose-300">{error}</p>}{message && <p role="status" className="text-sm leading-6 text-mint">{message}</p>}
     <button disabled={busy} className="primary w-full">{busy ? <LoaderCircle size={16} className="animate-spin"/> : <ArrowRight size={16}/>}{{ login: 'Sign in', signup: 'Create account', forgot: 'Send reset link', reset: 'Update password' }[mode]}</button>
-  </form><div className="mt-6 flex flex-wrap justify-between gap-3 text-xs text-iris">{mode === 'login' ? <><Link href="/signup">Create an account</Link><Link href="/forgot-password">Forgot password?</Link></> : <Link href="/login">Back to sign in</Link>}</div></section><p className="mt-6 text-center text-xs text-mist">Think it through. Then make it real.</p></main>;
+  </form><div className="mt-6 flex flex-wrap justify-between gap-3 text-xs text-iris">{mode === 'login' ? <><Link href={`/signup?next=${encodeURIComponent(destination)}`}>Create an account</Link><Link href="/forgot-password">Forgot password?</Link></> : <Link href={`/login?next=${encodeURIComponent(destination)}`}>Back to sign in</Link>}</div></section><p className="mt-6 text-center text-xs text-mist">Think it through. Then make it real.</p></main>;
 }

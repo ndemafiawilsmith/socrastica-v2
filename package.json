@@ -8,6 +8,8 @@
     "start": "node scripts/next-production.cjs start",
     "typecheck": "tsc --noEmit",
     "test:integration": "node scripts/test-integration.cjs",
+    "test:blueprint": "node scripts/test-blueprint.cjs",
+    "test:studio": "node scripts/test-studio.cjs",
     "db:migrate": "node scripts/migrate.cjs",
     "usage:status": "node scripts/usage-status.cjs",
     "test:production": "node scripts/test-production.cjs",
@@ -16,7 +18,9 @@
     "test:execution": "node scripts/test-execution.cjs",
     "test:reasoning": "node scripts/test-reasoning.cjs",
     "auth:email": "node scripts/configure-auth-email.cjs",
-    "email:preview": "node scripts/preview-emails.cjs"
+    "email:preview": "node scripts/preview-emails.cjs",
+    "test:teaching": "node scripts/test-teaching.cjs",
+    "test:exercises": "node scripts/test-exercises.cjs"
   },
   "dependencies": {
     "@aws-sdk/client-cloudwatch-events": "^3.1145.0",
@@ -33,13 +37,16 @@
     "@monaco-editor/react": "^4.7.0",
     "@supabase/ssr": "^0.12.7",
     "@supabase/supabase-js": "^2.117.2",
+    "@xyflow/react": "^12.12.0",
     "framer-motion": "^12.0.0",
     "lucide-react": "^0.468.0",
     "mermaid": "^11.4.0",
     "next": "^15.5.0",
     "nodemailer": "^10.0.13",
+    "quickjs-emscripten": "^0.32.0",
     "react": "^19.0.0",
     "react-dom": "^19.0.0",
+    "typescript": "^5.9.3",
     "zod": "^4.6.5"
   },
   "overrides": {
@@ -54,7 +61,6 @@
     "@types/react-dom": "^19.0.0",
     "autoprefixer": "^10.4.20",
     "postcss": "^8.4.49",
-    "tailwindcss": "^3.4.17",
-    "typescript": "^5.7.0"
+    "tailwindcss": "^3.4.17"
   }
 }

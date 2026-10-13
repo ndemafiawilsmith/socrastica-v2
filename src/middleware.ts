@@ -17,4 +17,4 @@ export async function middleware(request: NextRequest) {
   response.headers.set('Cache-Control', 'private, no-store');
   return response;
 }
-export const config = { matcher: ['/studio/:path*', '/api/:path*', '/auth/:path*', '/login', '/signup', '/forgot-password', '/reset-password'] };
+export const config = { matcher: ['/studio/:path*', '/learn/:path*', '/exercises', '/instructor/:path*', '/api/:path*', '/auth/:path*', '/login', '/signup', '/forgot-password', '/reset-password'] };
