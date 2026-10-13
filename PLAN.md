@@ -32,11 +32,11 @@ Started October 13, 2026. Each item becomes its own commit on `main`. Boxes are 
 
 ## Phase 3: simulation experience
 
-- [ ] 3.1 Packet strip above the canvas: the input rendered as a strip with a cursor, the current item lifted, read items dimmed, memory shelf and totals updating per frame. Text and number inputs get their own treatment.
-- [ ] 3.2 Code-line sync: the active frame's node marker highlights and scrolls the matching code during playback.
-- [ ] 3.3 Suite grid: the verification suite renders as a grid of dots that fill as inputs pass; a failing dot loads that input.
-- [ ] 3.4 Loop pass counter badge and iteration ring on loop blocks.
-- [ ] 3.5 Breakpoints: click a block to pause the packet there; run-to-block.
+- [x] 3.1 Packet strip above the canvas: the input rendered as a strip with a cursor, the current item lifted, read items dimmed, memory shelf and totals updating per frame. Text and number inputs get their own treatment.
+- [x] 3.2 Code-line sync: the active frame's node marker highlights and scrolls the matching code during playback.
+- [x] 3.3 Suite grid: the verification suite renders as a grid of dots that fill as inputs pass; a failing dot loads that input.
+- [x] 3.4 Loop pass counter badge and iteration ring on loop blocks.
+- [x] 3.5 Breakpoints: click a block to pause the packet there; run-to-block.
 - [x] 3.6 Seeded examples: "Load a working idea" and "Load a common mistake" per challenge.
 
 ## Phase 4: product

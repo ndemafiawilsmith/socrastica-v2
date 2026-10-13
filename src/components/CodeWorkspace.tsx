@@ -9,18 +9,21 @@ import { displayValue } from '@/lib/values';
 const Editor = dynamic(() => import("@monaco-editor/react"), { ssr: false });
 export type RunResult = { name?: string; input: unknown; expected: unknown; actual: unknown; passed: boolean; error?: string };
 export type RunReport = { passed: boolean; passedCount: number; total: number; summary: string; results: RunResult[] };
-type Props = { code: string; onChange: (code: string) => void; onRun: () => Promise<RunReport>; drafting?: boolean; selectedNodeId?: string | null; selectedNodeLabel?: string; fileName?: string };
+type Props = { code: string; onChange: (code: string) => void; onRun: () => Promise<RunReport>; drafting?: boolean; selectedNodeId?: string | null; activeNodeId?: string | null; selectedNodeLabel?: string; fileName?: string };
 
-export default function CodeWorkspace({ code, onChange, onRun, drafting = false, selectedNodeId, selectedNodeLabel, fileName = 'solution.ts' }: Props) {
+export default function CodeWorkspace({ code, onChange, onRun, drafting = false, selectedNodeId, activeNodeId, selectedNodeLabel, fileName = 'solution.ts' }: Props) {
   const editorRef = useRef<editor.IStandaloneCodeEditor | null>(null), decorations = useRef<editor.IEditorDecorationsCollection | null>(null);
   const [editorReady, setEditorReady] = useState(false);
-  const lines = code.split('\n'), marker = selectedNodeId ? lines.findIndex(line => line.trim() === `// node: ${selectedNodeId}`) : -1;
+  // During playback the packet's current block wins; otherwise the block the student selected.
+  const highlightId = activeNodeId || selectedNodeId;
+  const lines = code.split('\n'), marker = highlightId ? lines.findIndex(line => line.trim() === `// node: ${highlightId}`) : -1;
   useEffect(() => {
     decorations.current?.clear(); if (!editorRef.current || marker < 0) return;
     let end = lines.findIndex((line, index) => index > marker && line.trim().startsWith('// node: ')); if (end < 0) end = lines.length;
-    decorations.current = editorRef.current.createDecorationsCollection([{ range: { startLineNumber: marker + 1, startColumn: 1, endLineNumber: end, endColumn: 1 }, options: { isWholeLine: true, className: 'blueprint-code-focus' } }]);
-    editorRef.current.revealLineInCenter(marker + 1);
-  }, [code, selectedNodeId, editorReady]);
+    decorations.current = editorRef.current.createDecorationsCollection([{ range: { startLineNumber: marker + 1, startColumn: 1, endLineNumber: end, endColumn: 1 }, options: { isWholeLine: true, className: activeNodeId ? 'blueprint-code-active' : 'blueprint-code-focus' } }]);
+    if (activeNodeId) editorRef.current.revealLineInCenterIfOutsideViewport(marker + 1); else editorRef.current.revealLineInCenter(marker + 1);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [code, highlightId, activeNodeId, editorReady]);
   const [busy, setBusy] = useState(false);
   const [report, setReport] = useState<RunReport | null>(null);
   const [error, setError] = useState("");
@@ -37,7 +40,7 @@ export default function CodeWorkspace({ code, onChange, onRun, drafting = false,
   return <section className="panel" aria-label="Code workspace">
     <div className="panel-title"><Braces size={16} className="text-iris"/> Bring your logic to life <span className="ml-auto font-mono text-[10px] text-mist">TypeScript</span></div>
     <div className="border-b border-white/[0.07] bg-black/15 px-5 py-3 font-mono text-xs text-iris">{fileName}</div>
-    {selectedNodeId && <p className="px-5 py-3 text-xs text-mist">{marker >= 0 ? `Highlighted code for “${selectedNodeLabel || selectedNodeId}”.` : 'Select a block to explore its job. This older draft has no block markers; new drafts include them.'}</p>}
+    {highlightId && <p className="px-5 py-3 text-xs text-mist">{marker >= 0 ? (activeNodeId ? 'Following the packet through the code.' : `Highlighted code for “${selectedNodeLabel || selectedNodeId}”.`) : 'Select a block to explore its job. This draft has no block markers; AI drafts include them.'}</p>}
     <Editor onMount={instance => { editorRef.current = instance; setEditorReady(true); }} height="320px" language="typescript" value={code} onChange={value => { onChange(value ?? ""); setReport(null); }} theme="socrastica" loading={<p className="p-8 text-sm text-mist">Loading editor…</p>} beforeMount={monaco => monaco.editor.defineTheme("socrastica", { base: "vs-dark", inherit: true, rules: [{ token: "comment", foreground: "747b98" }, { token: "keyword", foreground: "B5A3FF" }], colors: { "editor.background": "#111320", "editor.foreground": "#D9DCEF", "editorLineNumber.foreground": "#555B76", "editor.selectionBackground": "#B5A3FF30", "editor.lineHighlightBackground": "#FFFFFF04" } })} options={{ readOnly: busy || drafting, minimap: { enabled: false }, fontSize: 13, lineHeight: 24, padding: { top: 20 }, scrollBeyondLastLine: false, automaticLayout: true, tabSize: 2, wordWrap: "on", ariaLabel: "TypeScript code editor" }}/>
     <div className="flex flex-wrap items-center justify-between gap-3 border-t border-white/10 p-4"><span className="flex items-center gap-2 text-[11px] text-mist"><Info size={13}/>{busy ? 'Running your code in an isolated sandbox…' : '40 checks · standalone TypeScript · no imports or network'}</span><button className="primary" onClick={run} disabled={busy || drafting || !code.trim()}>{busy ? <LoaderCircle size={14} className="animate-spin"/> : <Play size={14}/>} {busy ? "Running…" : "Run tests"}</button></div>
     {error && <p role="alert" className="px-5 pb-5 text-sm text-rose-300">{error}</p>}
