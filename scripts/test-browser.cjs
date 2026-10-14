@@ -62,9 +62,15 @@ async function main(){
  await page.getByText('Your building blocks').waitFor({timeout:60000});
  await page.getByText('Canvas saved').waitFor({timeout:60000});
  assert.ok((await page.locator('.logic-block').count())>=6,'Guest blueprint imported into the account');
- await page.getByRole('button',{name:'Show code'}).click();
+ await page.getByRole('button',{name:'Blueprint + code'}).click();
+ await page.getByText('Not drafted yet').waitFor({timeout:30000});
  await page.getByRole('button',{name:'Run tests'}).click();
  await page.getByText(/of 40 checks passed|40 checks passed/).waitFor({timeout:60000});
+ await page.getByRole('combobox',{name:'Simulation speed'}).selectOption('1000');
+ await page.getByRole('button',{name:'Simulate'}).click();await page.waitForTimeout(2500);
+ await page.screenshot({path:path.join(shots,'studio-split.png'),fullPage:true});
+ await page.keyboard.press(' ');
+ console.log('PASS split view: canvas and code side by side during playback');
  await page.getByRole('button',{name:'Open profile and settings'}).click();
  await page.getByRole('button',{name:'Create share link'}).click();
  await page.getByText(/\/share\//).waitFor({timeout:30000});

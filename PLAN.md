@@ -37,6 +37,7 @@ Started October 13, 2026. Each item becomes its own commit on `main`. Boxes are 
 - [x] 3.3 Suite grid: the verification suite renders as a grid of dots that fill as inputs pass; a failing dot loads that input.
 - [x] 3.4 Loop pass counter badge and iteration ring on loop blocks.
 - [x] 3.5 Breakpoints: click a block to pause the packet there; run-to-block.
+- [x] 3.7 Studio stage redesign (October 14): canvas and code side by side under one packet strip and one transport bar, a title bar instead of the hero heading, the block inspector as an overlay on the canvas, a compact icon library in split view, drafting and run controls in the code pane header, keyboard transport (space, arrows), and the director at the top of the guide.
 - [x] 3.6 Seeded examples: "Load a working idea" and "Load a common mistake" per challenge.
 
 ## Phase 4: product
